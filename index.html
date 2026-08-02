@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="assets/ALGORITMO.DA.VEZ (1).png" type="image/x-icon">
+    <title>Document</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+        integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50vh;
+            border: 5px solid black;
+            width: 50vh;
+            flex-direction: column;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="caixa">
+        <a href="paginas/post-generator2.html">Posts-principais</a>
+        <a href="paginas/cover-post-generator2.html">Capa</a>
+        <a href="paginas/cards-codes.html">Cards de codigo</a>
+        <a href="paginas/cards-codes2.html">Cards de codigo</a>
+        <a href="paginas/CTI.html">CTI</a>
+        <a href="paginas/CTI2.html">CTI</a>
+        <button id="BOTAOZAO"></button>
+    </div>
+
+
+
+    <!--
+        <script>
+
+        const capturaDeElemento = document.getElementById("caixa")
+
+        function imprimir() {
+            html2canvas(capturaDeElemento).then((canvas) => {
+                //CRIA A IMAGEM E MOSTRA NA PAGINA
+                document.body.appendChild(canvas);
+
+                //FAZ O DOWNOAD DA IMAGEM 
+                const link = document.getElementById("DOWNLOADZAO");
+                link.download = 'minha-captura.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            })
+        }
+
+        const botaoAtivar = document.getElementById("BOTAOZAO")
+
+        botaoAtivar.onclick = imprimir
+
+    </script>
+    
+    -->
+
+
+</body>
+
+</html>
