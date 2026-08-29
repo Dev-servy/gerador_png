@@ -1,69 +1,1082 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="assets/ALGORITMO.DA.VEZ (1).png" type="image/x-icon">
-    <title>Document</title>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
-        integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <title>Roteiro Completo de Estudos - Desenvolvimento</title>
 
     <style>
-        div {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #010409;
+            --border: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --blue: #58a6ff;
+            --green: #3fb950;
+            --orange: #ffa657;
+            --purple: #bc8cff;
+            --pink: #f778ba;
+            --red: #f85149;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(165deg, #0d1117, #161b22, #0d1117);
+            color: var(--text-primary);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 50vh;
-            border: 5px solid black;
-            width: 50vh;
+            align-items: flex-start;
+            padding: 40px;
+            gap: 40px;
+            line-height: 1.6;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
+        }
+
+        /* MENU */
+        #menu {
+            width: 300px;
+            padding: 25px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            display: flex;
             flex-direction: column;
+            gap: 12px;
+            position: sticky;
+            top: 30px;
+            max-height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+
+        #menu h3 {
+            text-align: center;
+            color: var(--blue);
+            font-size: 20px;
+            margin-bottom: 8px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        #menu a {
+            text-decoration: none;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: .25s;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        #menu a:hover {
+            background: rgba(56, 139, 253, .10);
+            border-color: var(--blue);
+            color: var(--blue);
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(31, 111, 235, .15);
+        }
+
+        #menu a:active {
+            transform: scale(.97);
+        }
+
+        #menu .badge {
+            background: var(--blue);
+            color: #000;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            margin-left: auto;
+            font-weight: bold;
+        }
+
+        /* CONTEÚDO */
+        #conteudos {
+            width: 950px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            transition: .3s;
+        }
+
+        .card:hover {
+            border-color: var(--blue);
+            box-shadow: 0 12px 40px rgba(31, 111, 235, .10);
+        }
+
+        .card>h2 {
+            color: var(--blue);
+            font-size: 26px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card>h2 .icon {
+            font-size: 32px;
+        }
+
+        .badge-count {
+            background: var(--border);
+            color: var(--text-secondary);
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-left: 10px;
+            font-weight: normal;
+        }
+
+        /* DETAILS */
+        details {
+            margin: 12px 0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(13, 17, 23, 0.5);
+            transition: .3s;
+        }
+
+        details:hover {
+            border-color: #484f58;
+        }
+
+        details[open] {
+            border-color: var(--blue);
+            background: rgba(56, 139, 253, 0.03);
+        }
+
+        summary {
+            padding: 16px 20px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 17px;
+            color: var(--text-primary);
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: .2s;
+            border-radius: 12px;
+        }
+
+        summary:hover {
+            color: var(--blue);
+            background: rgba(56, 139, 253, 0.05);
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::before {
+            content: "▶";
+            font-size: 12px;
+            transition: .3s;
+            color: var(--blue);
+            min-width: 16px;
+        }
+
+        details[open]>summary::before {
+            transform: rotate(90deg);
+        }
+
+        details[open]>summary {
+            color: var(--blue);
+            border-bottom: 1px solid var(--border);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .details-content {
+            padding: 20px;
+        }
+
+        /* SUB-DETAILS */
+        .sub-details {
+            margin: 10px 0;
+            border: 1px solid rgba(48, 54, 61, 0.5);
+            border-radius: 8px;
+            background: rgba(22, 27, 34, 0.5);
+        }
+
+        .sub-details summary {
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .sub-details summary:hover {
+            color: var(--green);
+            background: rgba(63, 185, 80, 0.05);
+        }
+
+        .sub-details[open] {
+            border-color: var(--green);
+        }
+
+        .sub-details[open]>summary {
+            color: var(--green);
+            border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+        }
+
+        .sub-details summary::before {
+            content: "▸";
+            color: var(--green);
+        }
+
+        .sub-details-content {
+            padding: 15px 20px;
+        }
+
+        /* LISTAS */
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 7px 0;
+            padding-left: 20px;
+            position: relative;
+            color: var(--text-primary);
+        }
+
+        li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--blue);
+            font-weight: bold;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(88, 166, 255, 0.15);
+            color: var(--blue);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 0 2px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .tag-green {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--green);
+        }
+
+        .tag-orange {
+            background: rgba(255, 166, 87, 0.15);
+            color: var(--orange);
+        }
+
+        .tag-purple {
+            background: rgba(188, 140, 255, 0.15);
+            color: var(--purple);
+        }
+
+        .highlight {
+            color: var(--orange);
+            font-weight: bold;
+        }
+
+        .note {
+            background: rgba(88, 166, 255, 0.08);
+            border-left: 3px solid var(--blue);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .note strong {
+            color: var(--blue);
+        }
+
+        /* RESPONSIVO */
+        @media (max-width: 1300px) {
+            body {
+                flex-direction: column;
+                align-items: center;
+                padding: 20px;
+            }
+
+            #menu {
+                width: 100%;
+                max-width: 950px;
+                position: static;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 20px;
+                max-height: none;
+            }
+
+            #menu h3 {
+                width: 100%;
+                margin-bottom: 0;
+            }
+
+            #menu a {
+                flex: 1 1 auto;
+                text-align: center;
+                justify-content: center;
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+
+            #conteudos {
+                width: 100%;
+                max-width: 950px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div id="caixa">
-        <a href="paginas/post-generator2.html">Posts-principais</a>
-        <a href="paginas/cover-post-generator2.html">Capa</a>
-        <a href="paginas/cards-codes.html">Cards de codigo</a>
-        <a href="paginas/cards-codes2.html">Cards de codigo</a>
-        <a href="paginas/CTI.html">CTI</a>
-        <a href="paginas/CTI2.html">CTI</a>
-        <button id="BOTAOZAO"></button>
+    <div id="menu">
+        <h3>📚 Ferramentas</h3>
+        <a href="paginas/post-generator2.html">📝 Posts Principais</a>
+        <a href="paginas/cards.html">cards</a>
+        <a href="paginas/cover-post-generator.html">🎨 Capa</a>
+        <a href="paginas/cover-post-generator2.html">🎨 Capa 2</a>
+        <a href="paginas/list-generator.html">Listas</a>
+        <a href="paginas/CTI.html">🔬 Post CTI </a>
     </div>
 
+    <div id="conteudos">
+        <!-- CARD 1: FRONT-END -->
+        <div class="card">
+            <h2>
+                <span class="icon">🎨</span> FRONT-END & ECOSSISTEMA WEB
+                <span class="badge-count">6 tópicos</span>
+            </h2>
 
+            <!-- A. HTML5 & Acessibilidade -->
+            <details>
+                <summary>📄 HTML5, Semântica & Acessibilidade (A11Y)</summary>
+                <div class="details-content">
+                    <div class="sub-details">
+                        <summary>🏗️ Estrutura Semântica</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">Tags estruturais:</span> <span class="tag">main</span> <span
+                                        class="tag">section</span> <span class="tag">article</span> <span
+                                        class="tag">aside</span> <span class="tag">nav</span> <span
+                                        class="tag">header</span> <span class="tag">footer</span></li>
+                                <li><span class="highlight">Boas práticas:</span> Evitar <span class="tag">div</span>
+                                    desenfreada (divitis)</li>
+                                <li><span class="highlight">Outline HTML5:</span> Hierarquia de headings e sectioning
+                                    content</li>
+                                <li>Microdata e Schema.org para rich snippets</li>
+                            </ul>
+                        </div>
+                    </div>
 
-    <!--
-        <script>
+                    <div class="sub-details">
+                        <summary>🔍 SEO On-Page & Metadados</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">Open Graph:</span> <span class="tag">og:title</span> <span
+                                        class="tag">og:description</span> <span class="tag">og:image</span> <span
+                                        class="tag">og:url</span></li>
+                                <li><span class="highlight">Twitter Cards:</span> <span class="tag">twitter:card</span>
+                                    <span class="tag">twitter:site</span>
+                                </li>
+                                <li><span class="highlight">Canonical:</span> <span class="tag">&lt;link
+                                        rel="canonical"&gt;</span> para evitar duplicate content</li>
+                                <li>Robots meta tags, sitemap.xml, robots.txt</li>
+                                <li>Favicons e Web App Manifest para PWA</li>
+                            </ul>
+                        </div>
+                    </div>
 
-        const capturaDeElemento = document.getElementById("caixa")
+                    <div class="sub-details">
+                        <summary>📝 Formulários Modernos</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">Validação nativa:</span> <span class="tag">required</span>
+                                    <span class="tag">pattern</span> <span class="tag">minlength</span> <span
+                                        class="tag">maxlength</span>
+                                </li>
+                                <li><span class="highlight">Atributos:</span> <span class="tag">autocomplete</span>
+                                    <span class="tag">inputmode</span> <span class="tag">enterkeyhint</span>
+                                </li>
+                                <li>Tipos de input: <span class="tag">email</span> <span class="tag">tel</span> <span
+                                        class="tag">url</span> <span class="tag">date</span> <span
+                                        class="tag">color</span></li>
+                                <li>Constraint Validation API com JavaScript</li>
+                            </ul>
+                        </div>
+                    </div>
 
-        function imprimir() {
-            html2canvas(capturaDeElemento).then((canvas) => {
-                //CRIA A IMAGEM E MOSTRA NA PAGINA
-                document.body.appendChild(canvas);
+                    <div class="sub-details">
+                        <summary>♿ Acessibilidade (WCAG 2.1+)</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">ARIA:</span> <span class="tag">aria-label</span> <span
+                                        class="tag">aria-labelledby</span> <span class="tag">aria-describedby</span>
+                                    <span class="tag">aria-hidden</span>
+                                </li>
+                                <li><span class="highlight">Roles:</span> <span class="tag">role="button"</span> <span
+                                        class="tag">role="navigation"</span> <span class="tag">role="alert"</span></li>
+                                <li>Navegação por teclado: <span class="tag">tabindex</span>, focus trap, skip links
+                                </li>
+                                <li>Screen Readers: landmarks, live regions, alt text significativo</li>
+                                <li>Contraste de cores e tamanhos de fonte acessíveis</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </details>
 
-                //FAZ O DOWNOAD DA IMAGEM 
-                const link = document.getElementById("DOWNLOADZAO");
-                link.download = 'minha-captura.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            })
-        }
+            <!-- B. CSS Moderno -->
+            <details>
+                <summary>🎨 CSS Moderno, Layouts & Animações</summary>
+                <div class="details-content">
+                    <div class="sub-details">
+                        <summary>📐 Layouts Avançados</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">Flexbox:</span> <span class="tag">flex-direction</span>
+                                    <span class="tag">flex-wrap</span> <span class="tag">gap</span> <span
+                                        class="tag">order</span>
+                                </li>
+                                <li><span class="highlight">CSS Grid:</span> <span
+                                        class="tag">grid-template-areas</span> <span class="tag">fr</span> <span
+                                        class="tag">minmax()</span> <span class="tag">auto-fill</span> <span
+                                        class="tag">auto-fit</span></li>
+                                <li><span class="highlight">Subgrid:</span> Alinhamento de grids aninhados com o grid
+                                    pai</li>
+                                <li><span class="highlight">Container Queries:</span> <span
+                                        class="tag">@container</span> para responsividade baseada no container</li>
+                            </ul>
+                        </div>
+                    </div>
 
-        const botaoAtivar = document.getElementById("BOTAOZAO")
+                    <div class="sub-details">
+                        <summary>⚡ Funções CSS Modernas</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">Funções matemáticas:</span> <span class="tag">clamp()</span>
+                                    <span class="tag">min()</span> <span class="tag">max()</span> <span
+                                        class="tag">calc()</span>
+                                </li>
+                                <li><span class="highlight">Tipografia fluida:</span> <span class="tag">clamp(1rem, 2vw,
+                                        2rem)</span></li>
+                                <li><span class="highlight">Cores modernas:</span> <span class="tag">hsl()</span> <span
+                                        class="tag">oklch()</span> <span class="tag">color-mix()</span></li>
+                                <li><span class="highlight">Nesting CSS:</span> Aninhamento nativo similar ao Sass</li>
+                                <li><span class="highlight">Has selector:</span> <span class="tag">:has()</span> para
+                                    seletores baseados em filhos</li>
+                            </ul>
+                        </div>
+                    </div>
 
-        botaoAtivar.onclick = imprimir
+                    <div class="sub-details">
+                        <summary>✨ Animações & Microinterações</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">Keyframes:</span> <span class="tag">@keyframes</span> com
+                                    steps e easing functions</li>
+                                <li><span class="highlight">Transições:</span> <span
+                                        class="tag">transition-behavior</span> para animações discretas</li>
+                                <li><span class="highlight">Scroll-driven:</span> <span
+                                        class="tag">scroll-timeline</span> <span class="tag">view-timeline</span></li>
+                                <li><span class="highlight">View Transitions API:</span> Transições entre estados de
+                                    página</li>
+                                <li>Performance: <span class="tag">will-change</span> <span class="tag">transform</span>
+                                    vs <span class="tag">top/left</span></li>
+                            </ul>
+                        </div>
+                    </div>
 
-    </script>
-    
-    -->
+                    <div class="sub-details">
+                        <summary>🎯 Metodologias & Frameworks</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">BEM:</span> Block Element Modifier para naming</li>
+                                <li><span class="highlight">Tailwind CSS:</span> Utility-first, configuração, plugins
+                                </li>
+                                <li><span class="highlight">CSS Modules:</span> Escopo local, composição</li>
+                                <li><span class="highlight">Styled Components:</span> CSS-in-JS com props dinâmicas</li>
+                                <li><span class="highlight">Sass/SCSS:</span> Mixins, funções, loops, herança</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </details>
 
+            <!-- C. JavaScript -->
+            <details>
+                <summary>⚡ JavaScript Moderno (ES6+ até ES2026)</summary>
+                <div class="details-content">
+                    <div class="sub-details">
+                        <summary>🔧 Manipulação de DOM & Eventos</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">Carregamento:</span> <span class="tag">defer</span> vs <span
+                                        class="tag">async</span> vs <span class="tag">type="module"</span></li>
+                                <li><span class="highlight">Event Delegation:</span> Eventos em elementos dinâmicos</li>
+                                <li><span class="highlight">Observers:</span> <span class="tag">MutationObserver</span>
+                                    <span class="tag">IntersectionObserver</span> <span
+                                        class="tag">ResizeObserver</span>
+                                </li>
+                                <li><span class="highlight">Custom Events:</span> <span class="tag">new
+                                        CustomEvent()</span> + <span class="tag">dispatchEvent()</span></li>
+                            </ul>
+                        </div>
+                    </div>
 
+                    <div class="sub-details">
+                        <summary>🧬 Sintaxe & Recursos Modernos</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">Destructuring:</span> Arrays, objetos, parâmetros, valores
+                                    default</li>
+                                <li><span class="highlight">Operadores:</span> <span class="tag">?.</span> (Optional
+                                    Chaining) <span class="tag">??</span> (Nullish Coalescing) <span
+                                        class="tag">??=</span> (Logical Assignment)</li>
+                                <li><span class="highlight">Template Literals:</span> Tagged templates, interpolação
+                                </li>
+                                <li><span class="highlight">Modules:</span> <span class="tag">import/export</span>
+                                    dinâmico, <span class="tag">import.meta</span></li>
+                                <li><span class="highlight">Top-level await:</span> Uso de await fora de async functions
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="sub-details">
+                        <summary>⏳ Assincronismo & Promises</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">Promises:</span> Estados, encadeamento, error handling</li>
+                                <li><span class="highlight">Async/Await:</span> try/catch, retorno implícito</li>
+                                <li><span class="highlight">Combinadores:</span> <span class="tag">Promise.all()</span>
+                                    <span class="tag">Promise.allSettled()</span> <span class="tag">Promise.any()</span>
+                                    <span class="tag">Promise.race()</span>
+                                </li>
+                                <li><span class="highlight">AbortController:</span> Cancelamento de requisições fetch
+                                </li>
+                                <li><span class="highlight">Generators:</span> <span class="tag">function*</span> <span
+                                        class="tag">yield</span> para fluxos assíncronos</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="sub-details">
+                        <summary>💾 APIs do Browser</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">Storage:</span> <span class="tag">localStorage</span> <span
+                                        class="tag">sessionStorage</span> <span class="tag">IndexedDB</span></li>
+                                <li><span class="highlight">Fetch API:</span> Headers, caching, streaming responses</li>
+                                <li><span class="highlight">Web Workers:</span> Processamento em background threads</li>
+                                <li><span class="highlight">Service Workers:</span> Cache offline, push notifications
+                                </li>
+                                <li><span class="highlight">Geolocation</span>, <span
+                                        class="highlight">Clipboard</span>, <span class="highlight">Notifications
+                                        API</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- D. TypeScript -->
+            <details>
+                <summary>🔷 TypeScript Avançado</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Types vs Interfaces:</span> Quando usar cada um, declaration merging
+                        </li>
+                        <li><span class="highlight">Generics:</span> Constraints, default values, conditional types</li>
+                        <li><span class="highlight">Utility Types:</span> <span class="tag">Partial&lt;T&gt;</span>
+                            <span class="tag">Pick&lt;T,K&gt;</span> <span class="tag">Omit&lt;T,K&gt;</span> <span
+                                class="tag">Record&lt;K,V&gt;</span> <span class="tag">Readonly&lt;T&gt;</span>
+                        </li>
+                        <li><span class="highlight">Advanced:</span> <span class="tag">infer</span> <span
+                                class="tag">satisfies</span> <span class="tag">as const</span> <span
+                                class="tag">template literal types</span></li>
+                        <li><span class="highlight">Decorators:</span> Class, method, property decorators</li>
+                    </ul>
+                </div>
+            </details>
+
+            <!-- E. Frameworks -->
+            <details>
+                <summary>⚛️ Frameworks & Bibliotecas Front-End</summary>
+                <div class="details-content">
+                    <div class="sub-details">
+                        <summary>React.js</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">Hooks avançados:</span> <span class="tag">useMemo</span>
+                                    <span class="tag">useCallback</span> <span class="tag">useRef</span> <span
+                                        class="tag">useReducer</span>
+                                </li>
+                                <li><span class="highlight">Custom Hooks:</span> Abstração de lógica reutilizável</li>
+                                <li><span class="highlight">Server Components:</span> RSC, streaming, suspenses</li>
+                                <li><span class="highlight">Gerenciamento:</span> Context API, Zustand, Redux Toolkit,
+                                    Jotai</li>
+                                <li><span class="highlight">Next.js:</span> App Router, SSR, ISR, Middleware</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="sub-details">
+                        <summary>Vue.js / Angular / Svelte</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">Vue 3:</span> Composition API, Pinia, Teleport, Suspense
+                                </li>
+                                <li><span class="highlight">Angular:</span> Signals, Dependency Injection, RxJS, Guards
+                                </li>
+                                <li><span class="highlight">Svelte:</span> Stores, reatividade granular, SvelteKit</li>
+                                <li><span class="highlight">Astro:</span> Zero-JS por padrão, islands architecture</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- F. Performance -->
+            <details>
+                <summary>🚀 Performance & Otimização Web</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Core Web Vitals:</span> LCP, FID, CLS e métricas</li>
+                        <li><span class="highlight">Code Splitting:</span> Dynamic imports, lazy loading</li>
+                        <li><span class="highlight">Otimização de imagens:</span> WebP, AVIF, lazy loading, srcset</li>
+                        <li><span class="highlight">Bundling:</span> Tree shaking, minification, compression</li>
+                        <li><span class="highlight">Caching:</span> Cache-Control, ETags, Service Workers</li>
+                        <li><span class="highlight">CDN:</span> Edge computing, distribuição global</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+
+        <!-- CARD 2: BACK-END -->
+        <div class="card">
+            <h2>
+                <span class="icon">⚙️</span> BACK-END & BANCOS DE DADOS
+                <span class="badge-count">5 tópicos</span>
+            </h2>
+
+            <details>
+                <summary>🟢 Node.js & TypeScript</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Event Loop:</span> Fases (timers, poll, check), microtasks vs
+                            macrotasks</li>
+                        <li><span class="highlight">Streams:</span> Readable, Writable, Transform, pipeline</li>
+                        <li><span class="highlight">EventEmitters:</span> Padrão observer, memory leak prevention</li>
+                        <li><span class="highlight">Cluster & Worker Threads:</span> Multi-core utilization</li>
+                        <li><span class="highlight">Frameworks:</span> Express, Fastify, NestJS, Hono</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>🐍 Python</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Data structures:</span> List/Dict/Set Comprehension, Generators</li>
+                        <li><span class="highlight">Decorators:</span> @staticmethod, @classmethod, @property, custom
+                        </li>
+                        <li><span class="highlight">Async:</span> asyncio, coroutines, event loops</li>
+                        <li><span class="highlight">Typing:</span> Type hints, Pydantic, dataclasses</li>
+                        <li><span class="highlight">Frameworks:</span> FastAPI, Django, Flask, Litestar</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>☕ Java / Kotlin / C#</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Java:</span> Stream API, Optional, CompletableFuture, Spring Boot
+                        </li>
+                        <li><span class="highlight">Kotlin:</span> Coroutines, Extension functions, Null safety, Ktor
+                        </li>
+                        <li><span class="highlight">C#:</span> LINQ, async/await, Dependency Injection, ASP.NET Core
+                        </li>
+                        <li><span class="highlight">POO:</span> SOLID principles, Design Patterns (Factory, Singleton,
+                            Observer, Strategy)</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>🔧 Go & Rust (Alta Performance)</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Go:</span> Goroutines, Channels, Select, Context package</li>
+                        <li><span class="highlight">Rust:</span> Ownership, Borrowing, Lifetimes, Pattern matching</li>
+                        <li><span class="highlight">Concorrência:</span> Memory safety sem garbage collector</li>
+                        <li>Frameworks: Gin (Go), Actix-web (Rust), Axum (Rust)</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>🏗️ Arquitetura de APIs & Comunicação</summary>
+                <div class="details-content">
+                    <div class="sub-details">
+                        <summary>🌐 Padrões de API</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">REST:</span> HATEOAS, versionamento, status codes corretos
+                                </li>
+                                <li><span class="highlight">GraphQL:</span> Queries, Mutations, Subscriptions,
+                                    DataLoader</li>
+                                <li><span class="highlight">gRPC:</span> Protocol Buffers, streaming bidirecional</li>
+                                <li><span class="highlight">WebSockets:</span> Socket.io, WS, comunicação em tempo real
+                                </li>
+                                <li><span class="highlight">SSE:</span> Server-Sent Events para streaming unidirecional
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="sub-details">
+                        <summary>🔐 Autenticação & Autorização</summary>
+                        <div class="sub-details-content">
+                            <ul>
+                                <li><span class="highlight">JWT:</span> Access & Refresh tokens, blacklisting</li>
+                                <li><span class="highlight">OAuth 2.0:</span> Authorization Code, PKCE, Client
+                                    Credentials</li>
+                                <li><span class="highlight">Passkeys/WebAuthn:</span> Autenticação sem senha</li>
+                                <li><span class="highlight">RBAC vs ABAC:</span> Controle de acesso baseado em
+                                    funções/atributos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <!-- CARD 3: BANCOS DE DADOS -->
+        <div class="card">
+            <h2>
+                <span class="icon">🗄️</span> BANCOS DE DADOS & ARMAZENAMENTO
+                <span class="badge-count">3 tópicos</span>
+            </h2>
+
+            <details>
+                <summary>🐘 Bancos Relacionais (PostgreSQL/MySQL)</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Índices:</span> B-tree, Hash, GiST, GIN, partial indexes</li>
+                        <li><span class="highlight">Queries:</span> JOINs (INNER, LEFT, CROSS), subqueries, CTEs, window
+                            functions</li>
+                        <li><span class="highlight">Transações:</span> ACID, isolation levels, deadlocks</li>
+                        <li><span class="highlight">Otimização:</span> <span class="tag">EXPLAIN ANALYZE</span>, query
+                            planning, vacuum</li>
+                        <li><span class="highlight">ORM:</span> Prisma, TypeORM, Drizzle, SQLAlchemy</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>🍃 NoSQL (MongoDB, Redis, Cassandra)</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">MongoDB:</span> Aggregation pipeline, indexes, sharding</li>
+                        <li><span class="highlight">Redis:</span> Data structures (Strings, Hashes, Lists, Sets, Sorted
+                            Sets, Streams)</li>
+                        <li><span class="highlight">Caching:</span> Cache-Aside, Write-Through, Write-Behind</li>
+                        <li><span class="highlight">Cassandra:</span> Wide-column, tunable consistency</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>📊 Modelagem & Estratégias</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Normalização:</span> 1FN, 2FN, 3FN vs desnormalização</li>
+                        <li><span class="highlight">Padrões:</span> CQRS, Event Sourcing, Saga Pattern</li>
+                        <li><span class="highlight">Migrations:</span> Versionamento de schema, rollback</li>
+                        <li><span class="highlight">Backup:</span> Full, incremental, point-in-time recovery</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+
+        <!-- CARD 4: MOBILE -->
+        <div class="card">
+            <h2>
+                <span class="icon">📱</span> MOBILE DEVELOPMENT
+                <span class="badge-count">3 tópicos</span>
+            </h2>
+
+            <details>
+                <summary>🔄 Cross-Platform (React Native & Flutter)</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">React Native:</span> Expo managed workflow, Reanimated 3, FlashList
+                        </li>
+                        <li><span class="highlight">Flutter:</span> Widget tree, state management (Bloc, Riverpod,
+                            Provider)</li>
+                        <li><span class="highlight">Performance:</span> Hermes engine, Skia renderer, JSI</li>
+                        <li>Ponte nativa: Native Modules, platform channels</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>🤖 Android (Kotlin + Jetpack)</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Jetpack Compose:</span> Declarative UI, state hoisting,
+                            recomposition</li>
+                        <li><span class="highlight">Coroutines:</span> Dispatchers, Flow, StateFlow, SharedFlow</li>
+                        <li><span class="highlight">Arquitetura:</span> MVVM, Clean Architecture, Repository pattern
+                        </li>
+                        <li><span class="highlight">Bibliotecas:</span> Room, Retrofit, Hilt/Dagger, Coil</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>🍎 iOS (Swift + SwiftUI)</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Swift:</span> Optionals, Closures, Protocol-Oriented Programming
+                        </li>
+                        <li><span class="highlight">SwiftUI:</span> @State, @Binding, @ObservableObject, @Environment
+                        </li>
+                        <li><span class="highlight">Concurrency:</span> async/await, Actors, MainActor</li>
+                        <li><span class="highlight">Combine:</span> Publishers, Subscribers, operators</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+
+        <!-- CARD 5: DEVOPS -->
+        <div class="card">
+            <h2>
+                <span class="icon">☁️</span> DEVOPS, INFRA & SEGURANÇA
+                <span class="badge-count">4 tópicos</span>
+            </h2>
+
+            <details>
+                <summary>🐳 Containers & Docker</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Dockerfile:</span> Multi-stage builds, layers optimization</li>
+                        <li><span class="highlight">Docker Compose:</span> Services, networks, volumes</li>
+                        <li><span class="highlight">Boas práticas:</span> .dockerignore, non-root users, health checks
+                        </li>
+                        <li><span class="highlight">Orquestração:</span> Kubernetes básico (pods, deployments, services)
+                        </li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>🔄 CI/CD & Automação</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">GitHub Actions:</span> Workflows, jobs, steps, secrets</li>
+                        <li><span class="highlight">Pipelines:</span> Build, test, deploy automatizados</li>
+                        <li><span class="highlight">Estratégias:</span> Blue-Green, Canary, Rolling deployments</li>
+                        <li><span class="highlight">Infrastructure as Code:</span> Terraform, Pulumi, Ansible</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>🛡️ Segurança Dev (DevSecOps)</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">OWASP Top 10:</span> SQL Injection, XSS, CSRF, SSRF</li>
+                        <li><span class="highlight">Secrets:</span> .env no .gitignore, vaults (HashiCorp Vault, AWS
+                            Secrets Manager)</li>
+                        <li><span class="highlight">Headers:</span> CSP, HSTS, X-Frame-Options, CORS adequado</li>
+                        <li><span class="highlight">Dependências:</span> npm audit, Snyk, Dependabot</li>
+                        <li><span class="highlight">HTTPS:</span> TLS, certificates, Let's Encrypt</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>☁️ Cloud Providers</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">AWS:</span> EC2, S3, Lambda, RDS, CloudFront</li>
+                        <li><span class="highlight">Vercel/Netlify:</span> Serverless functions, edge functions</li>
+                        <li><span class="highlight">Monitoramento:</span> Logs, métricas, alerting (Datadog, Grafana,
+                            Sentry)</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+
+        <!-- CARD 6: FERRAMENTAS -->
+        <div class="card">
+            <h2>
+                <span class="icon">🛠️</span> FERRAMENTAS, IDES & PRODUTIVIDADE
+                <span class="badge-count">3 tópicos</span>
+            </h2>
+
+            <details>
+                <summary>💻 VS Code & IDEs JetBrains</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Atalhos:</span> Multi-cursor, refatoração, navegação, snippets</li>
+                        <li><span class="highlight">Extensões:</span> GitLens, Error Lens, Thunder Client, Prettier,
+                            ESLint</li>
+                        <li><span class="highlight">Debugging:</span> Breakpoints condicionais, watch, call stack</li>
+                        <li><span class="highlight">Settings:</span> settings.json, workspace, profiles</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>📦 Git & Versionamento</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Avançado:</span> <span class="tag">git rebase -i</span> <span
+                                class="tag">git cherry-pick</span> <span class="tag">git bisect</span> <span
+                                class="tag">git reflog</span></li>
+                        <li><span class="highlight">Stash:</span> <span class="tag">git stash push -m</span> <span
+                                class="tag">git stash pop</span> <span class="tag">git stash apply</span></li>
+                        <li><span class="highlight">Workflows:</span> Git Flow, Trunk-Based Development, Conventional
+                            Commits</li>
+                        <li><span class="highlight">Hooks:</span> pre-commit, pre-push com Husky/lint-staged</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>🖥️ Terminal & CLI</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Zsh/Bash:</span> Aliases, funções, scripts</li>
+                        <li><span class="highlight">Comandos:</span> <span class="tag">grep</span> <span
+                                class="tag">sed</span> <span class="tag">awk</span> <span class="tag">find</span> <span
+                                class="tag">xargs</span> <span class="tag">jq</span></li>
+                        <li><span class="highlight">Monitoramento:</span> <span class="tag">htop</span> <span
+                                class="tag">lsof</span> <span class="tag">netstat</span> <span class="tag">du</span>
+                        </li>
+                        <li><span class="highlight">tmux/screen:</span> Multiplexadores de terminal</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+
+        <!-- CARD 7: CARREIRA -->
+        <div class="card">
+            <h2>
+                <span class="icon">💼</span> CARREIRA, SOFT SKILLS & ENGENHARIA DE SOFTWARE
+                <span class="badge-count">4 tópicos</span>
+            </h2>
+
+            <details>
+                <summary>📚 Clean Code & Princípios</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">SOLID:</span> Single Responsibility, Open-Closed, Liskov, Interface
+                            Segregation, Dependency Inversion</li>
+                        <li><span class="highlight">DRY, KISS, YAGNI:</span> Princípios de simplicidade</li>
+                        <li><span class="highlight">Code Smells:</span> Long methods, large classes, duplicate code</li>
+                        <li><span class="highlight">Refactoring:</span> Técnicas catalogadas (Extract Method, Move
+                            Method)</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>🧮 Estruturas de Dados & Algoritmos</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Complexidade:</span> Big-O notation, space vs time</li>
+                        <li><span class="highlight">Estruturas:</span> Arrays, Linked Lists, Stacks, Queues, Trees,
+                            Graphs, Hash Tables</li>
+                        <li><span class="highlight">Algoritmos:</span> Sorting, Searching, Recursion, Dynamic
+                            Programming</li>
+                        <li><span class="highlight">Plataformas:</span> LeetCode, HackerRank, Codewars</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>🎤 Entrevistas Técnicas</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Whiteboard:</span> Comunicação do pensamento, edge cases</li>
+                        <li><span class="highlight">System Design:</span> Escalabilidade, load balancers, caching,
+                            database sharding</li>
+                        <li><span class="highlight">Portfólio:</span> GitHub organizado, projetos relevantes, README
+                        </li>
+                        <li><span class="highlight">Soft Skills:</span> Comunicação, trabalho em equipe, feedback</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details>
+                <summary>🚀 Carreira & Crescimento</summary>
+                <div class="details-content">
+                    <ul>
+                        <li><span class="highlight">Mentoria:</span> Aprender ensinando, code reviews construtivos</li>
+                        <li><span class="highlight">Comunidade:</span> Open source contributions, tech talks, blog posts
+                        </li>
+                        <li><span class="highlight">Roadmap:</span> Junior → Pleno → Senior → Staff/Principal</li>
+                        <li><span class="highlight">Especialização:</span> T-shaped skills, nichos de mercado</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+
+        <div class="note">
+            <strong>💡 Dica:</strong> Este roteiro é um guia vivo. Priorize os tópicos conforme sua stack e objetivos.
+            Aprofunde-se nos temas com projetos práticos e mantenha-se atualizado com as documentações oficiais.
+        </div>
+    </div>
 </body>
 
 </html>
