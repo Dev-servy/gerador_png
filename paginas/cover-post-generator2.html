@@ -761,6 +761,15 @@
             const titleCount = document.getElementById('titleCount');
             const subCount = document.getElementById('subCount');
 
+            // Cor sólida de fundo por tema, usada como fallback no PNG exportado
+            // (evita bordas transparentes/sub-pixel que "vazam" a cor de trás)
+            const THEME_BG = {
+                'theme-dark': '#0d1117',
+                'theme-neon': '#150a2e',
+                'theme-light': '#ffffff',
+                'theme-retro': '#050805',
+            };
+
             function getInitial(handle) {
                 const clean = handle.replace('@', '').trim();
                 return clean ? clean.charAt(0).toUpperCase() : '@';
@@ -809,24 +818,58 @@
 
             window.addEventListener('resize', fitStage);
 
+            // ---- Download PNG ----
+            // FIX: em vez de resetar o transform do #post-preview visível
+            // (que ainda está dentro do .preview-stage/.stage-frame
+            // responsivos), clonamos o card para um container fixo e
+            // isolado, fora da viewport, sempre com 1080x1080 reais. Isso
+            // elimina a linha fina de cor diferente nas bordas causada por:
+            //  1) html2canvas usando window.innerWidth/innerHeight do
+            //     dispositivo para montar o clone interno de DOM
+            //     (resolvido travando windowWidth/windowHeight);
+            //  2) o elemento capturado ainda estar sujeito ao fitStage()
+            //     e ao layout responsivo do palco (resolvido capturando um
+            //     clone fora desse fluxo, anexado direto ao <body>);
+            //  3) backgroundColor: null deixando bordas anti-aliasing
+            //     transparentes, que "vazam" a cor de fundo da página por
+            //     trás ao abrir o PNG (resolvido com uma cor sólida
+            //     correspondente ao tema ativo).
             downloadBtn.addEventListener('click', async function () {
                 downloadBtn.disabled = true;
                 const originalText = downloadBtn.textContent;
                 downloadBtn.textContent = '⏳ Gerando imagem...';
 
-                const wasVisible = safeZoneOverlay.classList.contains('visible');
-                safeZoneOverlay.classList.remove('visible');
+                // identifica o tema ativo para escolher a cor de fundo sólida
+                const activeThemeClass = postPreview.className || 'theme-dark';
+                const bgColor = THEME_BG[activeThemeClass] || '#0d1117';
 
-                const originalTransform = postPreview.style.transform;
-                postPreview.style.transform = 'none';
+                // clone isolado, fora da tela, sem transform/scale nem
+                // dependência do palco responsivo
+                const clone = postPreview.cloneNode(true);
+                clone.style.transform = 'none';
+                clone.style.position = 'fixed';
+                clone.style.top = '0';
+                clone.style.left = '-99999px'; // fora da viewport, mas ainda "layoutável"
+                clone.style.margin = '0';
+                clone.style.width = '1080px';
+                clone.style.height = '1080px';
+
+                // a safe zone nunca deve aparecer no PNG, independentemente
+                // de estar visível no preview — garantimos isso no clone
+                const cloneSafeZone = clone.querySelector('.safe-zone-overlay');
+                if (cloneSafeZone) cloneSafeZone.classList.remove('visible');
+
+                document.body.appendChild(clone);
 
                 try {
-                    const canvas = await html2canvas(postPreview, {
+                    const canvas = await html2canvas(clone, {
                         width: 1080,
                         height: 1080,
+                        windowWidth: 1080,
+                        windowHeight: 1080,
                         scale: 1,
                         useCORS: true,
-                        backgroundColor: null
+                        backgroundColor: bgColor
                     });
                     const link = document.createElement('a');
                     const safeName = (tagInput.value.trim() || 'capa').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -837,8 +880,7 @@
                     alert('Não foi possível gerar a imagem. Tente novamente.');
                     console.error(err);
                 } finally {
-                    postPreview.style.transform = originalTransform;
-                    if (wasVisible) safeZoneOverlay.classList.add('visible');
+                    document.body.removeChild(clone);
                     downloadBtn.disabled = false;
                     downloadBtn.textContent = originalText;
                 }
