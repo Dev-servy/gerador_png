@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Capas de Carrossel — Instagram</title>
+    <title>Gerador de Capas de Carrossel em Lote — Instagram</title>
     <style>
         /* Fonte do sistema */
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@500;700;800;900&display=swap');
@@ -21,6 +21,7 @@
             --panel-text-dim: #8892ab;
             --panel-accent: #7c9eff;
             --panel-accent-2: #3ddc97;
+            --panel-warn: #ff6ec7;
             --stage-bg: #05060a;
         }
 
@@ -85,6 +86,7 @@
             font-size: 12px;
             color: var(--panel-text-dim);
             margin: 2px 0 26px;
+            line-height: 1.5;
         }
 
         .field {
@@ -103,10 +105,8 @@
             margin-bottom: 8px;
         }
 
-        .field label .count {
-            font-family: var(--font-mono);
-            font-weight: 500;
-            color: #5c6584;
+        .field label .req {
+            color: var(--panel-warn);
             text-transform: none;
             letter-spacing: 0;
         }
@@ -128,6 +128,15 @@
 
         .field textarea {
             line-height: 1.4;
+        }
+
+        .field textarea#batchInput {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.55;
+            min-height: 300px;
+            resize: vertical;
+            white-space: pre;
         }
 
         .field input[type="text"]:focus,
@@ -155,7 +164,7 @@
             border: 1px solid var(--panel-border);
             border-radius: 10px;
             padding: 12px 14px;
-            margin-bottom: 26px;
+            margin-bottom: 20px;
         }
 
         .toggle-row span {
@@ -207,41 +216,81 @@
             background: #fff;
         }
 
-        .download-btn {
+        .divider {
+            height: 1px;
+            background: var(--panel-border);
+            margin: 4px 0 20px;
+        }
+
+        .btn {
             width: 100%;
             border: none;
             border-radius: 12px;
-            padding: 16px;
-            font-size: 15px;
+            padding: 15px 16px;
+            font-size: 14.5px;
             font-weight: 800;
             letter-spacing: .01em;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform .12s ease, box-shadow .12s ease, filter .12s ease, opacity .12s ease;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: var(--panel-bg-soft);
+            border: 1px solid var(--panel-border);
+            color: var(--panel-text);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            border-color: var(--panel-accent);
+            color: var(--panel-accent);
+        }
+
+        .btn-cta {
             color: #06110c;
             background: linear-gradient(90deg, var(--panel-accent-2), #7cf3c8);
             box-shadow: 0 8px 24px rgba(61, 220, 151, .25);
-            transition: transform .12s ease, box-shadow .12s ease;
+            margin-bottom: 10px;
         }
 
-        .download-btn:hover {
+        .btn-cta:hover:not(:disabled) {
             transform: translateY(-1px);
             box-shadow: 0 10px 30px rgba(61, 220, 151, .35);
         }
 
-        .download-btn:active {
-            transform: translateY(0px);
+        .status-line {
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            color: var(--panel-text-dim);
+            min-height: 16px;
         }
 
-        .download-btn:disabled {
-            opacity: .6;
-            cursor: wait;
-            transform: none;
+        .status-line.active {
+            color: var(--panel-accent-2);
+        }
+
+        .status-line.warn {
+            color: var(--panel-warn);
         }
 
         .hint {
             font-size: 11.5px;
             color: var(--panel-text-dim);
-            line-height: 1.5;
-            margin-top: 14px;
+            line-height: 1.55;
+            margin: 14px 0 0;
             border-top: 1px solid var(--panel-border);
             padding-top: 14px;
         }
@@ -250,46 +299,107 @@
             color: var(--panel-text);
         }
 
-        /* PALCO / PREVIEW */
-        .preview-stage {
+        .hint code {
+            font-family: var(--font-mono);
+            background: var(--panel-bg-soft);
+            padding: 1px 5px;
+            border-radius: 4px;
+            color: var(--panel-accent-2);
+        }
+
+        /* ---------- Área de preview ---------- */
+        .preview-area {
             flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            position: relative;
+            padding: 28px 32px 60px;
+            overflow-y: auto;
             background:
                 radial-gradient(circle at 30% 20%, rgba(124, 158, 255, .06), transparent 55%),
                 radial-gradient(circle at 80% 80%, rgba(61, 220, 151, .06), transparent 50%),
                 var(--stage-bg);
         }
 
-        .stage-frame {
-            box-shadow: 0 30px 80px rgba(0, 0, 0, .55), 0 0 0 1px var(--panel-border);
-            border-radius: 6px;
-            overflow: hidden;
-            line-height: 0;
+        .preview-toolbar {
+            margin-bottom: 22px;
         }
 
-        .zoom-tag {
-            position: absolute;
-            bottom: 22px;
-            left: 50%;
-            transform: translateX(-50%);
+        .preview-toolbar h2 {
             font-family: var(--font-mono);
-            font-size: 11px;
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .preview-toolbar h2 b {
+            color: #f1f5f9;
+        }
+
+        .empty-state {
+            border: 1px dashed var(--panel-border);
+            border-radius: 14px;
+            padding: 40px 28px;
             color: var(--panel-text-dim);
-            letter-spacing: .04em;
+            font-size: 13.5px;
+            max-width: 640px;
+            line-height: 1.65;
+        }
+
+        .empty-state code {
+            font-family: var(--font-mono);
             background: var(--panel-bg-soft);
-            border: 1px solid var(--panel-border);
-            padding: 6px 12px;
-            border-radius: 20px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--panel-accent-2);
+        }
+
+        .card-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 22px;
+        }
+
+        .card-frame {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px -8px rgba(0, 0, 0, .6), 0 0 0 1px var(--panel-border);
+            flex-shrink: 0;
+        }
+
+        .card-frame .frame-download {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 5;
+            background: rgba(0, 0, 0, .55);
+            border: 1px solid rgba(255, 255, 255, .2);
+            color: #fff;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            padding: 5px 9px;
+            border-radius: 6px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity .15s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .card-frame:hover .frame-download {
+            opacity: 1;
+        }
+
+        .post-scale-wrapper {
+            width: 1080px;
+            height: 1080px;
+            transform-origin: top left;
         }
 
         /* =========================================================
    O CARD (1080x1080) — ESTRUTURA
    ========================================================= */
-        #post-preview {
+        .cover-post {
             position: relative;
             width: 1080px;
             height: 1080px;
@@ -467,16 +577,6 @@
             color: #c3ccd6;
         }
 
-        .theme-dark .code-box {
-            background: #010409;
-            border: 1px solid #30363d;
-        }
-
-        .theme-dark .tip-box {
-            background: rgba(56, 139, 253, .08);
-            border: 1px solid rgba(56, 139, 253, .35);
-        }
-
         .theme-dark .post-footer {
             color: #8b949e;
         }
@@ -648,10 +748,6 @@
                 border-right: none;
                 border-bottom: 1px solid var(--panel-border);
             }
-
-            .preview-stage {
-                padding: 24px 12px 60px;
-            }
         }
     </style>
 </head>
@@ -663,25 +759,9 @@
         <aside class="control-panel">
             <div class="brand">
                 <span class="dot"></span>
-                <h1>Capa de Carrossel</h1>
+                <h1>Capas em Lote</h1>
             </div>
-            <p class="brand-sub">gerador de card 1 · grid-safe · 1080×1080</p>
-
-            <div class="field">
-                <label for="tagInput">Tag / Categoria</label>
-                <input type="text" id="tagInput" maxlength="28" value="TRUQUES CSS">
-            </div>
-
-            <div class="field">
-                <label for="titleInput">Título Principal <span class="count" id="titleCount">0/90</span></label>
-                <textarea id="titleInput" rows="3" maxlength="90">5 Truques de CSS que você deveria usar</textarea>
-            </div>
-
-            <div class="field">
-                <label for="subtitleInput">Subtítulo / Descrição <span class="count" id="subCount">0/120</span></label>
-                <textarea id="subtitleInput" rows="2"
-                    maxlength="120">Pare de sofrer com gambiarras no layout hoje mesmo.</textarea>
-            </div>
+            <p class="brand-sub">$ carousel-covers --batch<br>cole vários blocos de uma vez · grid-safe · 1080×1080</p>
 
             <div class="field">
                 <label for="handleInput">Handle do Instagram</label>
@@ -706,36 +786,47 @@
                 </label>
             </div>
 
-            <button class="download-btn" id="downloadBtn">📷 Baixar Capa Perfeita (PNG)</button>
+            <div class="divider"></div>
+
+            <div class="field">
+                <label for="batchInput">Importação em lote <span class="req">*</span></label>
+                <textarea id="batchInput">{
+  Tag: TRUQUES CSS
+  Título: 5 Truques de CSS que você deveria usar
+  Subtítulo: Pare de sofrer com gambiarras no layout hoje mesmo.
+}
+{
+  Tag: PERFORMANCE
+  Título: 3 Formas de Deixar seu Site Mais Rápido
+  Subtítulo: Pequenas mudanças, grandes ganhos de velocidade.
+}</textarea>
+            </div>
+            <p class="hint">Cada capa fica entre chaves <code>{ }</code>, com os campos <code>Tag</code>,
+                <code>Título</code> e <code>Subtítulo</code>. Handle e Tema valem para todas as capas do lote.
+            </p>
+
+            <button class="btn btn-primary" id="processBtn">🔄 Processar e Gerar Capas</button>
+
+            <div class="divider"></div>
+
+            <button class="btn btn-cta" id="downloadAllBtn" disabled>📦 Baixar Todas as Capas (PNG)</button>
+            <div class="status-line" id="statusLine"></div>
 
             <p class="hint"><b>Dica:</b> mantenha título e subtítulo dentro das linhas guia — é essa área que sobrevive
                 ao corte do grid do Instagram (miniatura em 3 colunas).</p>
         </aside>
 
-        <main class="preview-stage">
-            <div class="stage-frame" id="stageFrame">
-                <div id="post-preview" class="theme-dark">
-                    <div class="safe-zone-overlay" id="safeZoneOverlay"></div>
-
-                    <div class="post-header">
-                        <div class="post-avatar" id="avatarInitial">A</div>
-                        <div class="post-handle" id="handlePreview">@algoritmo.da.vez</div>
-                    </div>
-
-                    <div class="post-content">
-                        <span class="post-lang-badge" id="tagPreview">TRUQUES CSS</span>
-                        <h1 class="post-title" id="titlePreview">5 Truques de CSS que você deveria usar</h1>
-                        <p class="post-subtitle" id="subtitlePreview">Pare de sofrer com gambiarras no layout hoje
-                            mesmo.</p>
-                    </div>
-
-                    <div class="post-footer">
-                        <span>ARRASTE PARA VER MAIS</span>
-                        <span class="arrow">➔</span>
-                    </div>
-                </div>
+        <main class="preview-area">
+            <div class="preview-toolbar">
+                <h2 id="previewTitle">Nenhuma capa gerada ainda</h2>
             </div>
-            <span class="zoom-tag" id="zoomTag">100%</span>
+
+            <div class="empty-state" id="emptyState">
+                Cole seus blocos no painel à esquerda e clique em <code>Processar e Gerar Capas</code>. Cada bloco
+                <code>{ ... }</code> vira uma capa de 1080×1080 pronta para exportar.
+            </div>
+
+            <div class="card-grid" id="cardGrid"></div>
         </main>
 
     </div>
@@ -743,111 +834,295 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         (function () {
-            const tagInput = document.getElementById('tagInput');
-            const titleInput = document.getElementById('titleInput');
-            const subtitleInput = document.getElementById('subtitleInput');
-            const handleInput = document.getElementById('handleInput');
-            const themeSelect = document.getElementById('themeSelect');
-            const safeZoneToggle = document.getElementById('safeZoneToggle');
-            const downloadBtn = document.getElementById('downloadBtn');
+            "use strict";
 
-            const tagPreview = document.getElementById('tagPreview');
-            const titlePreview = document.getElementById('titlePreview');
-            const subtitlePreview = document.getElementById('subtitlePreview');
-            const handlePreview = document.getElementById('handlePreview');
-            const avatarInitial = document.getElementById('avatarInitial');
-            const postPreview = document.getElementById('post-preview');
-            const safeZoneOverlay = document.getElementById('safeZoneOverlay');
-            const titleCount = document.getElementById('titleCount');
-            const subCount = document.getElementById('subCount');
+            const els = {
+                handleInput: document.getElementById('handleInput'),
+                themeSelect: document.getElementById('themeSelect'),
+                safeZoneToggle: document.getElementById('safeZoneToggle'),
+                batchInput: document.getElementById('batchInput'),
+                processBtn: document.getElementById('processBtn'),
+                downloadAllBtn: document.getElementById('downloadAllBtn'),
+                statusLine: document.getElementById('statusLine'),
+                previewTitle: document.getElementById('previewTitle'),
+                emptyState: document.getElementById('emptyState'),
+                cardGrid: document.getElementById('cardGrid'),
+            };
 
-            function getInitial(handle) {
-                const clean = handle.replace('@', '').trim();
-                return clean ? clean.charAt(0).toUpperCase() : '@';
+            let parsedCovers = []; // { tag, title, subtitle }
+
+            const TILE_SIZE = 300; // px do preview; o card real é sempre 1080x1080
+            const SCALE = TILE_SIZE / 1080;
+
+            // Cor sólida de fundo por tema — usada no PNG exportado para
+            // evitar bordas transparentes/sub-pixel que "vazam" a cor de trás.
+            const THEME_BG = {
+                'theme-dark': '#0d1117',
+                'theme-neon': '#150a2e',
+                'theme-light': '#ffffff',
+                'theme-retro': '#050805',
+            };
+
+            /* =========================================================
+               1. PARSER EM LOTE
+               (mesmo motor de brace-depth do Batch Cards — chaves dentro
+               do próprio texto não quebram a divisão dos blocos)
+               ========================================================= */
+
+            function splitTopLevelBlocks(text) {
+                const blocks = [];
+                let depth = 0;
+                let start = -1;
+                for (let i = 0; i < text.length; i++) {
+                    const ch = text[i];
+                    if (ch === '{') {
+                        if (depth === 0) start = i + 1;
+                        depth++;
+                    } else if (ch === '}') {
+                        if (depth > 0) {
+                            depth--;
+                            if (depth === 0 && start !== -1) {
+                                blocks.push(text.slice(start, i));
+                                start = -1;
+                            }
+                        }
+                    }
+                }
+                return blocks;
             }
 
-            function syncText() {
-                tagPreview.textContent = tagInput.value.trim() || 'CATEGORIA';
-                titlePreview.textContent = titleInput.value.trim() || 'Seu título de alto impacto aqui';
-                subtitlePreview.textContent = subtitleInput.value.trim() || 'Sua descrição rápida aqui.';
-                const handle = handleInput.value.trim() || '@seu.perfil';
-                handlePreview.textContent = handle;
-                avatarInitial.textContent = "</>";
-                titleCount.textContent = titleInput.value.length + '/90';
-                subCount.textContent = subtitleInput.value.length + '/120';
+            const FIELD_DEFS = [
+                { key: 'tag', regex: /^(?:tag|categoria)\s*:\s*(.*)$/i },
+                { key: 'title', regex: /^(?:t[ií]tulo(?:\s+principal)?|title)\s*:\s*(.*)$/i },
+                { key: 'subtitle', regex: /^(?:subt[ií]tulo(?:\s*\/?\s*descri[cç][aã]o)?|subtitle)\s*:\s*(.*)$/i },
+            ];
+
+            function parseBlock(raw) {
+                const lines = raw.split(/\r?\n/);
+                const buffers = { tag: [], title: [], subtitle: [] };
+                let current = null;
+
+                for (const rawLine of lines) {
+                    const trimmedStart = rawLine.replace(/^[ \t]+/, '');
+                    let matched = false;
+
+                    for (const def of FIELD_DEFS) {
+                        const m = trimmedStart.match(def.regex);
+                        if (m) {
+                            matched = true;
+                            current = def.key;
+                            const inline = m[1].trim();
+                            if (inline) buffers[def.key].push(inline);
+                            break;
+                        }
+                    }
+
+                    if (matched) continue;
+                    if (current && rawLine.trim()) buffers[current].push(rawLine.trim());
+                }
+
+                return {
+                    tag: buffers.tag.join(' ').replace(/\s+/g, ' ').trim(),
+                    title: buffers.title.join(' ').replace(/\s+/g, ' ').trim(),
+                    subtitle: buffers.subtitle.join(' ').replace(/\s+/g, ' ').trim(),
+                };
             }
 
-            function syncTheme() {
-                postPreview.className = themeSelect.value;
+            function parseBatch(text) {
+                return splitTopLevelBlocks(text)
+                    .map(parseBlock)
+                    .filter(d => d.tag || d.title || d.subtitle); // ignora blocos vazios
             }
 
-            function syncSafeZone() {
-                safeZoneOverlay.classList.toggle('visible', safeZoneToggle.checked);
+            /* =========================================================
+               2. RENDERIZAÇÃO
+               ========================================================= */
+
+            function renderCovers() {
+                const handle = (els.handleInput.value || '@seu.perfil').trim();
+                const theme = els.themeSelect.value;
+                const showSafeZone = els.safeZoneToggle.checked;
+                const total = parsedCovers.length;
+
+                els.cardGrid.innerHTML = '';
+                els.emptyState.style.display = total ? 'none' : 'block';
+                els.previewTitle.innerHTML = total
+                    ? `Lote processado — <b>${total} capa${total > 1 ? 's' : ''}</b>`
+                    : 'Nenhuma capa gerada ainda';
+
+                parsedCovers.forEach((data) => {
+                    const frame = document.createElement('div');
+                    frame.className = 'card-frame';
+                    frame.style.width = TILE_SIZE + 'px';
+                    frame.style.height = TILE_SIZE + 'px';
+
+                    const dlBtn = document.createElement('button');
+                    dlBtn.className = 'frame-download';
+                    dlBtn.type = 'button';
+                    dlBtn.textContent = '⬇ PNG';
+                    frame.appendChild(dlBtn);
+
+                    const scaleWrapper = document.createElement('div');
+                    scaleWrapper.className = 'post-scale-wrapper';
+                    scaleWrapper.style.transform = `scale(${SCALE})`;
+
+                    const cover = document.createElement('div');
+                    cover.className = `cover-post ${theme}`;
+                    cover.innerHTML = `
+            <div class="safe-zone-overlay${showSafeZone ? ' visible' : ''}"></div>
+            <div class="post-header">
+              <div class="post-avatar">&lt;/&gt;</div>
+              <div class="post-handle"></div>
+            </div>
+            <div class="post-content">
+              <span class="post-lang-badge"></span>
+              <h1 class="post-title"></h1>
+              <p class="post-subtitle"></p>
+            </div>
+            <div class="post-footer">
+              <span>ARRASTE PARA VER MAIS</span>
+              <span class="arrow">➔</span>
+            </div>
+          `;
+
+                    // Texto inserido via textContent (não innerHTML) — evita
+                    // qualquer risco de o conteúdo colado quebrar a marcação.
+                    cover.querySelector('.post-handle').textContent = handle;
+                    cover.querySelector('.post-lang-badge').textContent = data.tag || 'CATEGORIA';
+                    cover.querySelector('.post-title').textContent = data.title || 'Seu título de alto impacto aqui';
+                    cover.querySelector('.post-subtitle').textContent = data.subtitle || 'Sua descrição rápida aqui.';
+
+                    scaleWrapper.appendChild(cover);
+                    frame.appendChild(scaleWrapper);
+                    els.cardGrid.appendChild(frame);
+
+                    dlBtn.addEventListener('click', () => downloadCover(cover, data));
+                });
             }
 
-            [tagInput, titleInput, subtitleInput, handleInput].forEach(el => {
-                el.addEventListener('input', syncText);
-            });
-            themeSelect.addEventListener('change', syncTheme);
-            safeZoneToggle.addEventListener('change', syncSafeZone);
+            /* =========================================================
+               3. EXPORTAÇÃO EM PNG (fix definitivo do bug de borda)
 
-            // Escala responsiva do card 1080x1080 no palco
-            const stageFrame = document.getElementById('stageFrame');
-            const stageEl = document.querySelector('.preview-stage');
-            const zoomTag = document.getElementById('zoomTag');
+               Em vez de capturar o `.cover-post` visível na tela — que está
+               dentro de um `.post-scale-wrapper` com `transform: scale()`
+               e de um `.card-frame` com `overflow: hidden`, ambos sujeitos
+               ao layout responsivo da página — clonamos o nó do card para
+               um container fixo e isolado, fora da viewport, sempre com
+               1080x1080 reais. Isso elimina a linha fina de cor diferente
+               nas bordas causada por:
+                 1) html2canvas usando window.innerWidth/innerHeight do
+                    dispositivo para montar seu clone interno de DOM
+                    (resolvido travando windowWidth/windowHeight em 1080);
+                 2) o elemento capturado ainda estar dentro do
+                    .post-scale-wrapper/.card-frame responsivos (resolvido
+                    capturando um clone fora desse fluxo, anexado direto
+                    ao <body>, sem transform/scale nem overflow);
+                 3) backgroundColor: null deixando bordas anti-aliasing
+                    transparentes, que "vazam" a cor de fundo da página por
+                    trás ao abrir o PNG (resolvido com uma cor sólida
+                    correspondente ao tema ativo).
+               A Safe Zone, mesmo se estiver visível no preview, nunca é
+               exportada — o clone sempre remove essa classe antes da
+               captura, independentemente do estado do toggle global.
+               ========================================================= */
 
-            function fitStage() {
-                const availW = stageEl.clientWidth - 60;
-                const availH = stageEl.clientHeight - 60;
-                const scale = Math.min(1, availW / 1080, availH / 1080);
-                postPreview.style.transform = `scale(${scale})`;
-                postPreview.style.transformOrigin = 'top left';
-                stageFrame.style.width = (1080 * scale) + 'px';
-                stageFrame.style.height = (1080 * scale) + 'px';
-                zoomTag.textContent = Math.round(scale * 100) + '%';
+            function safeName(str) {
+                return (str || 'capa').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             }
 
-            window.addEventListener('resize', fitStage);
+            async function downloadCover(coverEl, data) {
+                const activeThemeClass = (coverEl.className.match(/theme-\w+/) || ['theme-dark'])[0];
+                const bgColor = THEME_BG[activeThemeClass] || '#0d1117';
 
-            downloadBtn.addEventListener('click', async function () {
-                downloadBtn.disabled = true;
-                const originalText = downloadBtn.textContent;
-                downloadBtn.textContent = '⏳ Gerando imagem...';
+                const clone = coverEl.cloneNode(true);
+                clone.style.transform = 'none';
+                clone.style.position = 'fixed';
+                clone.style.top = '0';
+                clone.style.left = '-99999px'; // fora da viewport, mas ainda "layoutável"
+                clone.style.margin = '0';
+                clone.style.width = '1080px';
+                clone.style.height = '1080px';
 
-                const wasVisible = safeZoneOverlay.classList.contains('visible');
-                safeZoneOverlay.classList.remove('visible');
+                // a safe zone nunca deve aparecer no PNG, mesmo se estiver
+                // visível no preview no momento do clique
+                const cloneSafeZone = clone.querySelector('.safe-zone-overlay');
+                if (cloneSafeZone) cloneSafeZone.classList.remove('visible');
 
-                const originalTransform = postPreview.style.transform;
-                postPreview.style.transform = 'none';
+                document.body.appendChild(clone);
 
                 try {
-                    const canvas = await html2canvas(postPreview, {
+                    const canvas = await html2canvas(clone, {
                         width: 1080,
                         height: 1080,
+                        windowWidth: 1080,
+                        windowHeight: 1080,
                         scale: 1,
                         useCORS: true,
-                        backgroundColor: null
+                        backgroundColor: bgColor
                     });
                     const link = document.createElement('a');
-                    const safeName = (tagInput.value.trim() || 'capa').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                    link.download = `capa-carrossel-${safeName || 'instagram'}.png`;
+                    const name = safeName(data.tag || data.title);
+                    link.download = `capa-carrossel-${name || 'instagram'}.png`;
                     link.href = canvas.toDataURL('image/png');
                     link.click();
                 } catch (err) {
                     alert('Não foi possível gerar a imagem. Tente novamente.');
                     console.error(err);
                 } finally {
-                    postPreview.style.transform = originalTransform;
-                    if (wasVisible) safeZoneOverlay.classList.add('visible');
-                    downloadBtn.disabled = false;
-                    downloadBtn.textContent = originalText;
+                    document.body.removeChild(clone);
                 }
+            }
+
+            /* =========================================================
+               4. EVENTOS / ORQUESTRAÇÃO
+               ========================================================= */
+
+            function setStatus(msg, mode) {
+                els.statusLine.textContent = msg;
+                els.statusLine.classList.toggle('active', mode === 'ok');
+                els.statusLine.classList.toggle('warn', mode === 'warn');
+            }
+
+            els.processBtn.addEventListener('click', () => {
+                const covers = parseBatch(els.batchInput.value);
+                if (!covers.length) {
+                    setStatus('⚠ Nenhum bloco válido encontrado. Verifique se cada capa está entre { }.', 'warn');
+                    parsedCovers = [];
+                    els.downloadAllBtn.disabled = true;
+                    renderCovers();
+                    return;
+                }
+                parsedCovers = covers;
+                renderCovers();
+                setStatus(`✔ ${covers.length} capa(s) gerada(s) a partir do lote.`, 'ok');
+                els.downloadAllBtn.disabled = false;
             });
 
-            syncText();
-            syncTheme();
-            syncSafeZone();
-            fitStage();
+            // Handle, tema e safe zone são globais: qualquer mudança
+            // re-renderiza todas as capas já processadas
+            [els.handleInput].forEach(el => el.addEventListener('input', () => {
+                if (parsedCovers.length) renderCovers();
+            }));
+            [els.themeSelect, els.safeZoneToggle].forEach(el => el.addEventListener('change', () => {
+                if (parsedCovers.length) renderCovers();
+            }));
+
+            els.downloadAllBtn.addEventListener('click', async () => {
+                const coverEls = Array.from(document.querySelectorAll('.card-grid .cover-post'));
+                if (!coverEls.length) return;
+
+                els.downloadAllBtn.disabled = true;
+                for (let i = 0; i < coverEls.length; i++) {
+                    setStatus(`Exportando capa ${i + 1} de ${coverEls.length}...`, 'ok');
+                    await downloadCover(coverEls[i], parsedCovers[i]);
+                    await new Promise(r => setTimeout(r, 350)); // evita bloqueio de downloads múltiplos do navegador
+                }
+                setStatus(`✔ ${coverEls.length} capa(s) exportada(s) em PNG.`, 'ok');
+                els.downloadAllBtn.disabled = false;
+            });
+
+            // Inicialização: processa o exemplo já preenchido no textarea
+            els.processBtn.click();
         })();
     </script>
 
