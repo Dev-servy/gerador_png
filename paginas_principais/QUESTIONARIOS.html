@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reels Quiz — Gerador de Desafios de Código para Reels</title>
+
+    <!-- html2canvas: exportação dos cards como PNG -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- highlight.js: syntax highlight do bloco de código de cada quiz -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;600;700;800;900&display=swap');
+
+        :root {
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+
+            /* Tokens do PAINEL da ferramenta (não do card) */
+            --panel-bg: #0b0d13;
+            --panel-bg-soft: #12151d;
+            --panel-border: #22273a;
+            --panel-text: #e7e9f0;
+            --panel-text-dim: #8892ab;
+            --panel-accent: #7c9eff;
+            --panel-accent-2: #3ddc97;
+            --panel-warn: #ff6ec7;
+            --stage-bg: #05060a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            background: var(--stage-bg);
+            color: var(--panel-text);
+            font-family: var(--font-sans);
+        }
+
+        /* =========================================================
+   ESTRUTURA DA FERRAMENTA (PAINEL + PALCO)
+   ========================================================= */
+        .app-shell {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .control-panel {
+            width: 400px;
+            flex-shrink: 0;
+            background: var(--panel-bg);
+            border-right: 1px solid var(--panel-border);
+            padding: 28px 26px 32px;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .brand .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--panel-accent), var(--panel-accent-2));
+            box-shadow: 0 0 12px rgba(124, 158, 255, .6);
+        }
+
+        .brand h1 {
+            font-size: 15px;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            font-weight: 800;
+            margin: 0;
+            color: var(--panel-text);
+        }
+
+        .brand-sub {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--panel-text-dim);
+            margin: 2px 0 26px;
+            line-height: 1.5;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        .field label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--panel-text-dim);
+            margin-bottom: 8px;
+        }
+
+        .field label .req {
+            color: var(--panel-warn);
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .field input[type="text"],
+        .field textarea,
+        .field select {
+            width: 100%;
+            background: var(--panel-bg-soft);
+            border: 1px solid var(--panel-border);
+            color: var(--panel-text);
+            border-radius: 10px;
+            padding: 11px 13px;
+            font-family: var(--font-sans);
+            font-size: 14px;
+            resize: none;
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+
+        .field textarea#batchInput {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.55;
+            min-height: 320px;
+            resize: vertical;
+            white-space: pre;
+        }
+
+        .field input[type="text"]:focus,
+        .field textarea:focus,
+        .field select:focus {
+            outline: none;
+            border-color: var(--panel-accent);
+            box-shadow: 0 0 0 3px rgba(124, 158, 255, .18);
+        }
+
+        .field select {
+            appearance: none;
+            background-image: linear-gradient(45deg, transparent 50%, var(--panel-text-dim) 50%), linear-gradient(135deg, var(--panel-text-dim) 50%, transparent 50%);
+            background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+            background-size: 5px 5px, 5px 5px;
+            background-repeat: no-repeat;
+            cursor: pointer;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--panel-border);
+            margin: 4px 0 20px;
+        }
+
+        .btn {
+            width: 100%;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 16px;
+            font-size: 14.5px;
+            font-weight: 800;
+            letter-spacing: .01em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform .12s ease, box-shadow .12s ease, filter .12s ease, opacity .12s ease;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: var(--panel-bg-soft);
+            border: 1px solid var(--panel-border);
+            color: var(--panel-text);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            border-color: var(--panel-accent);
+            color: var(--panel-accent);
+        }
+
+        .btn-cta {
+            color: #06110c;
+            background: linear-gradient(90deg, var(--panel-accent-2), #7cf3c8);
+            box-shadow: 0 8px 24px rgba(61, 220, 151, .25);
+            margin-bottom: 10px;
+        }
+
+        .btn-cta:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 30px rgba(61, 220, 151, .35);
+        }
+
+        .status-line {
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            color: var(--panel-text-dim);
+            min-height: 16px;
+        }
+
+        .status-line.active {
+            color: var(--panel-accent-2);
+        }
+
+        .status-line.warn {
+            color: var(--panel-warn);
+        }
+
+        .hint {
+            font-size: 11.5px;
+            color: var(--panel-text-dim);
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        .hint code {
+            font-family: var(--font-mono);
+            background: var(--panel-bg-soft);
+            padding: 1px 5px;
+            border-radius: 4px;
+            color: var(--panel-accent-2);
+        }
+
+        /* ---------- Área de preview ---------- */
+        .preview-area {
+            flex: 1;
+            padding: 28px 32px 60px;
+            overflow-y: auto;
+            background:
+                radial-gradient(circle at 30% 20%, rgba(124, 158, 255, .06), transparent 55%),
+                radial-gradient(circle at 80% 80%, rgba(61, 220, 151, .06), transparent 50%),
+                var(--stage-bg);
+        }
+
+        .preview-toolbar {
+            margin-bottom: 22px;
+        }
+
+        .preview-toolbar h2 {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .preview-toolbar h2 b {
+            color: #f1f5f9;
+        }
+
+        .empty-state {
+            border: 1px dashed var(--panel-border);
+            border-radius: 14px;
+            padding: 40px 28px;
+            color: var(--panel-text-dim);
+            font-size: 13.5px;
+            max-width: 640px;
+            line-height: 1.65;
+        }
+
+        .empty-state code {
+            font-family: var(--font-mono);
+            background: var(--panel-bg-soft);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--panel-accent-2);
+        }
+
+        .card-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 22px;
+        }
+
+        .card-frame {
+            position: relative;
+            aspect-ratio: 9 / 16;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px -8px rgba(0, 0, 0, .6), 0 0 0 1px var(--panel-border);
+            flex-shrink: 0;
+        }
+
+        .card-frame .frame-download {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 5;
+            background: rgba(0, 0, 0, .55);
+            border: 1px solid rgba(255, 255, 255, .2);
+            color: #fff;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            padding: 5px 9px;
+            border-radius: 6px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity .15s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .card-frame:hover .frame-download {
+            opacity: 1;
+        }
+
+        .post-scale-wrapper {
+            width: 1080px;
+            height: 1920px;
+            transform-origin: top left;
+        }
+
+        /* =========================================================
+   O CARD DE QUIZ (1080x1920) — ESTRUTURA
+   ========================================================= */
+        .quiz-card {
+            width: 1080px;
+            height: 1920px;
+            display: flex;
+            flex-direction: column;
+            padding: 96px 72px 120px;
+            font-family: var(--font-sans);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 56px;
+        }
+
+        .post-handle-wrap {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .post-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .post-handle {
+            font-weight: 700;
+            font-size: 24px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .post-lang-badge {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 18px;
+            padding: 10px 18px;
+            border-radius: 999px;
+            letter-spacing: .03em;
+            flex-shrink: 0;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .quiz-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 44px;
+            min-height: 0;
+        }
+
+        .post-title {
+            font-size: 54px;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -.01em;
+            margin: 0;
+        }
+
+        .code-box {
+            border-radius: 20px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .code-box-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 22px;
+        }
+
+        .code-box-bar .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+        }
+
+        .code-box-bar .dot.red {
+            background: #ff5f57;
+        }
+
+        .code-box-bar .dot.yellow {
+            background: #ffbd2e;
+        }
+
+        .code-box-bar .dot.green {
+            background: #28c840;
+        }
+
+        .code-box-filename {
+            font-family: var(--font-mono);
+            font-size: 15px;
+            margin-left: 8px;
+        }
+
+        .code-box-body {
+            margin: 0;
+            padding: 10px 26px 28px;
+            font-family: var(--font-mono);
+            font-size: 24px;
+            line-height: 1.55;
+            max-height: 420px;
+            overflow: hidden;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .code-box-body code {
+            font-family: inherit;
+            background: none;
+        }
+
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .quiz-option {
+            border-radius: 18px;
+            padding: 22px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 26px;
+            font-weight: 600;
+            min-width: 0;
+        }
+
+        .quiz-option-letter {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .quiz-option-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+
+        .cta-box {
+            border-radius: 20px;
+            padding: 28px 30px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        /* =========================================================
+   TEMAS DOS CARDS (1080x1920 REELS QUIZ)
+   Cores Sólidas Backgrounds:
+   Dark Code: #0d1117
+   Neon Synth: #150a2e
+   Clean Light: #ffffff
+   Retro Terminal: #050805
+   ========================================================= */
+
+        /* ---------- TEMA 1 — Dark Code ---------- */
+        .theme-dark {
+            background: #0d1117;
+            color: #e6edf3;
+        }
+
+        .theme-dark .post-avatar {
+            background: #1f6feb22;
+            color: #58a6ff;
+            border: 1px solid #1f6feb55;
+        }
+
+        .theme-dark .post-handle {
+            color: #58a6ff;
+        }
+
+        .theme-dark .post-lang-badge {
+            background: #238636;
+            color: #eafff0;
+        }
+
+        .theme-dark .post-title {
+            color: #f0f6fc;
+        }
+
+        .theme-dark .code-box {
+            background: #010409;
+            border: 1px solid #30363d;
+        }
+
+        .theme-dark .quiz-option {
+            background: #161b22;
+            border: 1px solid #30363d;
+            color: #e6edf3;
+        }
+
+        .theme-dark .quiz-option-letter {
+            background: #1f6feb;
+            color: #fff;
+        }
+
+        .theme-dark .cta-box {
+            background: rgba(56, 139, 253, .1);
+            border: 1px solid rgba(56, 139, 253, .4);
+            color: #58a6ff;
+        }
+
+        /* ---------- TEMA 2 — Neon Synth ---------- */
+        .theme-neon {
+            background: #150a2e;
+            color: #f3ecff;
+        }
+
+        .theme-neon .post-avatar {
+            background: rgba(255, 110, 199, .15);
+            color: #ff6ec7;
+            border: 1px solid rgba(255, 110, 199, .55);
+        }
+
+        .theme-neon .post-handle {
+            color: #ff9ee0;
+        }
+
+        .theme-neon .post-lang-badge {
+            background: rgba(0, 229, 255, .14);
+            color: #7cf3ff;
+            border: 1px solid rgba(0, 229, 255, .5);
+        }
+
+        .theme-neon .post-title {
+            color: #7cf3ff;
+        }
+
+        .theme-neon .code-box {
+            background: rgba(9, 6, 20, .85);
+            border: 1px solid rgba(124, 243, 255, .35);
+        }
+
+        .theme-neon .quiz-option {
+            background: rgba(9, 6, 20, .75);
+            border: 1px solid rgba(124, 243, 255, .3);
+            color: #f3ecff;
+        }
+
+        .theme-neon .quiz-option-letter {
+            background: #ff6ec7;
+            color: #fff;
+        }
+
+        .theme-neon .cta-box {
+            background: rgba(255, 110, 199, .12);
+            border: 1px solid rgba(255, 110, 199, .5);
+            color: #ff9ee0;
+        }
+
+        /* ---------- TEMA 3 — Clean Light ---------- */
+        .theme-light {
+            background: #ffffff;
+            color: #0f172a;
+        }
+
+        .theme-light .post-avatar {
+            background: #eef2ff;
+            color: #4338ca;
+            border: 1px solid #c7d2fe;
+        }
+
+        .theme-light .post-handle {
+            color: #1d4ed8;
+        }
+
+        .theme-light .post-lang-badge {
+            background: #0f172a;
+            color: #fff;
+        }
+
+        .theme-light .post-title {
+            color: #0f172a;
+        }
+
+        .theme-light .code-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .theme-light .quiz-option {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #0f172a;
+        }
+
+        .theme-light .quiz-option-letter {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .theme-light .cta-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+        }
+
+        /* ---------- TEMA 4 — Retro Terminal ---------- */
+        .theme-retro {
+            background: #050805;
+            color: #3dff85;
+            font-family: var(--font-mono);
+        }
+
+        .theme-retro .post-avatar {
+            background: transparent;
+            color: #3dff85;
+            border: 2px solid #3dff85;
+        }
+
+        .theme-retro .post-handle {
+            color: #3dff85;
+        }
+
+        .theme-retro .post-lang-badge {
+            background: transparent;
+            color: #3dff85;
+            border: 2px solid #3dff85;
+        }
+
+        .theme-retro .post-title {
+            color: #baffcf;
+            font-family: var(--font-mono);
+        }
+
+        .theme-retro .code-box {
+            background: #020a03;
+            border: 1px solid #1f7a44;
+        }
+
+        .theme-retro .quiz-option {
+            background: #020a03;
+            border: 1px solid #1f7a44;
+            color: #3dff85;
+        }
+
+        .theme-retro .quiz-option-letter {
+            background: #3dff85;
+            color: #050805;
+            font-weight: 900;
+        }
+
+        .theme-retro .cta-box {
+            background: rgba(61, 255, 133, .05);
+            border: 1px solid #1f7a44;
+            color: #3dff85;
+        }
+
+        /* =========================================================
+   CSS COMPLEMENTAR (não faz parte do bloco de temas acima:
+   barra do editor de código, texto das opções e syntax
+   highlight do highlight.js — não conflita com nada definido
+   nos temas, só completa o que não foi coberto ali)
+   ========================================================= */
+
+        .theme-dark .code-box-bar {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .theme-dark .code-box-filename {
+            color: #8b949e;
+        }
+
+        .theme-dark .code-box-body {
+            color: #c9d1d9;
+        }
+
+        .theme-dark .quiz-option-text {
+            color: #e6edf3;
+        }
+
+        .theme-dark .hljs-keyword,
+        .theme-dark .hljs-built_in {
+            color: #ff7b72;
+        }
+
+        .theme-dark .hljs-string,
+        .theme-dark .hljs-attr {
+            color: #a5d6ff;
+        }
+
+        .theme-dark .hljs-comment {
+            color: #8b949e;
+            font-style: italic;
+        }
+
+        .theme-dark .hljs-title,
+        .theme-dark .hljs-function_,
+        .theme-dark .hljs-title.function_ {
+            color: #d2a8ff;
+        }
+
+        .theme-dark .hljs-number,
+        .theme-dark .hljs-literal {
+            color: #79c0ff;
+        }
+
+        .theme-dark .hljs-variable,
+        .theme-dark .hljs-params {
+            color: #ffa657;
+        }
+
+        .theme-neon .code-box-bar {
+            background: rgba(255, 255, 255, .03);
+            border-bottom: 1px solid rgba(124, 243, 255, .25);
+        }
+
+        .theme-neon .code-box-filename {
+            color: #b8a9e8;
+        }
+
+        .theme-neon .code-box-body {
+            color: #eae2ff;
+        }
+
+        .theme-neon .quiz-option-text {
+            color: #f3ecff;
+        }
+
+        .theme-neon .hljs-keyword,
+        .theme-neon .hljs-built_in {
+            color: #ff6ec7;
+        }
+
+        .theme-neon .hljs-string,
+        .theme-neon .hljs-attr {
+            color: #7cffcb;
+        }
+
+        .theme-neon .hljs-comment {
+            color: #8888c0;
+            font-style: italic;
+        }
+
+        .theme-neon .hljs-title,
+        .theme-neon .hljs-function_,
+        .theme-neon .hljs-title.function_ {
+            color: #ffe66d;
+        }
+
+        .theme-neon .hljs-number,
+        .theme-neon .hljs-literal {
+            color: #7cd7ff;
+        }
+
+        .theme-neon .hljs-variable,
+        .theme-neon .hljs-params {
+            color: #c9a4ff;
+        }
+
+        .theme-light .code-box-bar {
+            background: #eef2f7;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .theme-light .code-box-filename {
+            color: #64748b;
+        }
+
+        .theme-light .code-box-body {
+            color: #1e293b;
+        }
+
+        .theme-light .quiz-option-text {
+            color: #0f172a;
+        }
+
+        .theme-light .hljs-keyword,
+        .theme-light .hljs-built_in {
+            color: #b91c1c;
+        }
+
+        .theme-light .hljs-string,
+        .theme-light .hljs-attr {
+            color: #0369a1;
+        }
+
+        .theme-light .hljs-comment {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .theme-light .hljs-title,
+        .theme-light .hljs-function_,
+        .theme-light .hljs-title.function_ {
+            color: #7c3aed;
+        }
+
+        .theme-light .hljs-number,
+        .theme-light .hljs-literal {
+            color: #0e7490;
+        }
+
+        .theme-light .hljs-variable,
+        .theme-light .hljs-params {
+            color: #c2410c;
+        }
+
+        .theme-retro .code-box-bar {
+            background: #03130a;
+            border-bottom: 1px solid #1f7a44;
+        }
+
+        .theme-retro .code-box-bar .dot {
+            filter: grayscale(.4) brightness(.9);
+        }
+
+        .theme-retro .code-box-filename {
+            color: #2fae66;
+        }
+
+        .theme-retro .code-box-body {
+            color: #8dffb3;
+        }
+
+        .theme-retro .quiz-option-text {
+            color: #8dffb3;
+        }
+
+        .theme-retro .hljs-keyword,
+        .theme-retro .hljs-built_in {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .theme-retro .hljs-string,
+        .theme-retro .hljs-attr {
+            color: #8dffb3;
+        }
+
+        .theme-retro .hljs-comment {
+            color: #1f7a44;
+            font-style: italic;
+        }
+
+        .theme-retro .hljs-title,
+        .theme-retro .hljs-function_,
+        .theme-retro .hljs-title.function_ {
+            color: #c8ffdc;
+        }
+
+        .theme-retro .hljs-number,
+        .theme-retro .hljs-literal {
+            color: #ffffff;
+        }
+
+        .theme-retro .hljs-variable,
+        .theme-retro .hljs-params {
+            color: #3dff85;
+        }
+
+        /* Responsivo — painel empilha em telas estreitas */
+        @media (max-width: 900px) {
+            .app-shell {
+                flex-direction: column;
+            }
+
+            .control-panel {
+                width: 100%;
+                max-height: none;
+                border-right: none;
+                border-bottom: 1px solid var(--panel-border);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-shell">
+
+        <aside class="control-panel">
+            <div class="brand">
+                <span class="dot"></span>
+                <h1>Reels Quiz</h1>
+            </div>
+            <p class="brand-sub">$ quiz --reels<br>desafios de código verticais · 1080×1920</p>
+
+            <div class="field">
+                <label for="handleInput">Handle do Instagram</label>
+                <input type="text" id="handleInput" maxlength="30" value="@algoritmo.da.vez">
+            </div>
+
+            <div class="field">
+                <label for="themeSelect">Tema Visual</label>
+                <select id="themeSelect">
+                    <option value="theme-dark" selected>Dark Code</option>
+                    <option value="theme-neon">Neon Synth</option>
+                    <option value="theme-light">Clean Light</option>
+                    <option value="theme-retro">Retro Terminal</option>
+                </select>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="field">
+                <label for="batchInput">Importação em lote <span class="req">*</span></label>
+                <textarea id="batchInput">{
+  Title: QUAL É A SAÍDA DESTE CÓDIGO?
+  Nome do arquivo: quiz-array.js
+  Linguagem: JavaScript
+  Trecho de código:
+  const nums = [10, 20, 30];
+  nums[5] = 50;
+
+  console.log(nums.length);
+  Opções:
+  A) 3
+  B) 4
+  C) 6
+  D) SyntaxError
+  CTA: Deixe sua resposta nos comentários!
+}</textarea>
+            </div>
+            <p class="hint">Cada quiz fica entre chaves <code>{ }</code>, com <code>Title</code>,
+                <code>Nome do arquivo</code>, <code>Linguagem</code>, <code>Trecho de código</code>,
+                <code>Opções</code> (linhas <code>A)</code> a <code>D)</code>) e <code>CTA</code>. Chaves dentro do
+                próprio código não atrapalham o parser.
+            </p>
+
+            <button class="btn btn-primary" id="processBtn" style="margin-top:16px;">🔄 Processar e Gerar Quiz</button>
+
+            <div class="divider"></div>
+
+            <button class="btn btn-cta" id="downloadAllBtn" disabled>📦 Baixar Todos os Quiz em PNG</button>
+            <div class="status-line" id="statusLine"></div>
+        </aside>
+
+        <main class="preview-area">
+            <div class="preview-toolbar">
+                <h2 id="previewTitle">Nenhum quiz gerado ainda</h2>
+            </div>
+
+            <div class="empty-state" id="emptyState">
+                Cole seus blocos no painel à esquerda e clique em <code>Processar e Gerar Quiz</code>. Cada bloco
+                <code>{ ... }</code> vira um card vertical de 1080×1920 pronto para os Reels.
+            </div>
+
+            <div class="card-grid" id="cardGrid"></div>
+        </main>
+
+    </div>
+
+    <script>
+        (function () {
+            "use strict";
+
+            const els = {
+                handleInput: document.getElementById('handleInput'),
+                themeSelect: document.getElementById('themeSelect'),
+                batchInput: document.getElementById('batchInput'),
+                processBtn: document.getElementById('processBtn'),
+                downloadAllBtn: document.getElementById('downloadAllBtn'),
+                statusLine: document.getElementById('statusLine'),
+                previewTitle: document.getElementById('previewTitle'),
+                emptyState: document.getElementById('emptyState'),
+                cardGrid: document.getElementById('cardGrid'),
+            };
+
+            let parsedQuizzes = []; // { title, filename, lang, code, options:{A,B,C,D}, cta }
+
+            // Largura responsiva do tile de preview (o card real é sempre
+            // 1080x1920 — isso só afeta a miniatura exibida na tela)
+            function getTileWidth() {
+                const w = window.innerWidth;
+                if (w < 480) return 140;
+                if (w < 900) return 170;
+                return 210;
+            }
+
+            // Cor sólida de fundo por tema — usada no PNG exportado para
+            // evitar bordas transparentes/sub-pixel que "vazam" a cor de trás.
+            const THEME_BG = {
+                'theme-dark': '#0d1117',
+                'theme-neon': '#150a2e',
+                'theme-light': '#ffffff',
+                'theme-retro': '#050805',
+            };
+
+            const HLJS_MAP = {
+                javascript: 'javascript', js: 'javascript',
+                typescript: 'typescript', ts: 'typescript',
+                python: 'python', py: 'python',
+                html: 'xml', css: 'css',
+                java: 'java',
+                c: 'c', 'c++': 'cpp', cpp: 'cpp',
+                'c#': 'csharp', csharp: 'csharp',
+                php: 'php', sql: 'sql',
+                bash: 'bash', shell: 'bash', sh: 'bash',
+                go: 'go', golang: 'go',
+                ruby: 'ruby', kotlin: 'kotlin', swift: 'swift',
+                json: 'json', yaml: 'yaml', yml: 'yaml',
+                dart: 'dart', rust: 'rust'
+            };
+
+            /* =========================================================
+               1. PARSER EM LOTE
+               (mesmo motor de brace-depth dos geradores anteriores —
+               chaves dentro do próprio trecho de código não quebram a
+               divisão dos blocos)
+               ========================================================= */
+
+            function splitTopLevelBlocks(text) {
+                const blocks = [];
+                let depth = 0;
+                let start = -1;
+                for (let i = 0; i < text.length; i++) {
+                    const ch = text[i];
+                    if (ch === '{') {
+                        if (depth === 0) start = i + 1;
+                        depth++;
+                    } else if (ch === '}') {
+                        if (depth > 0) {
+                            depth--;
+                            if (depth === 0 && start !== -1) {
+                                blocks.push(text.slice(start, i));
+                                start = -1;
+                            }
+                        }
+                    }
+                }
+                return blocks;
+            }
+
+            function dedent(text) {
+                const lines = text.split('\n');
+                const nonEmpty = lines.filter(l => l.trim().length > 0);
+                if (!nonEmpty.length) return text.trim();
+                const indents = nonEmpty.map(l => (l.match(/^[ \t]*/) || [''])[0].length);
+                const minIndent = Math.min(...indents);
+                return lines.map(l => l.slice(minIndent)).join('\n');
+            }
+
+            const FIELD_DEFS = [
+                { key: 'title', regex: /^title\s*:\s*(.*)$/i, multiline: false },
+                { key: 'filename', regex: /^nome do arquivo\s*:\s*(.*)$/i, multiline: false },
+                { key: 'lang', regex: /^linguagem\s*:\s*(.*)$/i, multiline: false },
+                { key: 'code', regex: /^trecho de c[oó]digo\s*:\s*(.*)$/i, multiline: true },
+                { key: 'options', regex: /^op[cç][oõ]es\s*:\s*(.*)$/i, multiline: true },
+                { key: 'cta', regex: /^cta\s*:\s*(.*)$/i, multiline: true },
+            ];
+
+            function parseOptionLines(optLines) {
+                const opts = { A: '', B: '', C: '', D: '' };
+                optLines.forEach(line => {
+                    const t = line.trim();
+                    const m = t.match(/^([A-D])[\).:]\s*(.*)$/i);
+                    if (m) opts[m[1].toUpperCase()] = m[2].trim();
+                });
+                return opts;
+            }
+
+            function parseBlock(raw) {
+                const lines = raw.split(/\r?\n/);
+                const data = { title: '', filename: '', lang: '', code: '', cta: '' };
+                const codeLines = [];
+                const optLines = [];
+                const ctaLines = [];
+                let current = null;
+
+                for (const rawLine of lines) {
+                    const trimmedStart = rawLine.replace(/^[ \t]+/, '');
+                    let matched = false;
+
+                    for (const def of FIELD_DEFS) {
+                        const m = trimmedStart.match(def.regex);
+                        if (m) {
+                            matched = true;
+                            const inline = m[1];
+                            if (!def.multiline) {
+                                data[def.key] = inline.trim();
+                                current = null;
+                            } else {
+                                current = def.key;
+                                if (def.key === 'code' && inline.trim()) codeLines.push(inline);
+                                if (def.key === 'options' && inline.trim()) optLines.push(inline);
+                                if (def.key === 'cta' && inline.trim()) ctaLines.push(inline.trim());
+                            }
+                            break;
+                        }
+                    }
+
+                    if (matched) continue;
+
+                    if (current === 'code') codeLines.push(rawLine);
+                    else if (current === 'options') optLines.push(rawLine);
+                    else if (current === 'cta') ctaLines.push(rawLine.trim());
+                }
+
+                data.code = dedent(codeLines.join('\n'));
+                data.cta = ctaLines.join(' ').replace(/\s+/g, ' ').trim();
+                data.options = parseOptionLines(optLines);
+                return data;
+            }
+
+            function parseBatch(text) {
+                return splitTopLevelBlocks(text)
+                    .map(parseBlock)
+                    .filter(d => d.title || d.code); // ignora blocos vazios
+            }
+
+            /* =========================================================
+               2. RENDERIZAÇÃO
+               ========================================================= */
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            function resolveHljsClass(langRaw) {
+                const key = (langRaw || '').trim().toLowerCase();
+                return HLJS_MAP[key] || key || 'plaintext';
+            }
+
+            function buildQuizMarkup(data, initials, handle) {
+                const title = data.title || 'QUAL É A SAÍDA DESTE CÓDIGO?';
+                const filename = data.filename || 'snippet.txt';
+                const langLabel = data.lang || 'CODE';
+                const cta = data.cta || 'Comente a opção correta abaixo! 👇';
+                const opts = data.options || { A: '', B: '', C: '', D: '' };
+
+                return `
+          <div class="post-header">
+            <div class="post-handle-wrap">
+              <span class="post-avatar">${escapeHtml(initials)}</span>
+              <span class="post-handle">${escapeHtml(handle)}</span>
+            </div>
+            <span class="post-lang-badge">${escapeHtml(langLabel)}</span>
+          </div>
+          <div class="quiz-body">
+            <h1 class="post-title">${escapeHtml(title)}</h1>
+            <div class="code-box">
+              <div class="code-box-bar">
+                <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                <span class="code-box-filename">${escapeHtml(filename)}</span>
+              </div>
+              <pre class="code-box-body"><code class="hljs-target"></code></pre>
+            </div>
+            <div class="quiz-options">
+              ${['A', 'B', 'C', 'D'].map(letter => `
+                <div class="quiz-option">
+                  <span class="quiz-option-letter">${letter}</span>
+                  <span class="quiz-option-text">${escapeHtml(opts[letter] || '—')}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="cta-box">💬 ${escapeHtml(cta)}</div>
+        `;
+            }
+
+            function applyTileSizes() {
+                const tw = getTileWidth();
+                const scale = tw / 1080;
+                document.querySelectorAll('.card-frame').forEach(frame => {
+                    frame.style.width = tw + 'px';
+                    const wrapper = frame.querySelector('.post-scale-wrapper');
+                    if (wrapper) wrapper.style.transform = `scale(${scale})`;
+                });
+            }
+
+            function renderQuizzes() {
+                const handle = (els.handleInput.value || '@seu.usuario').trim();
+                const theme = els.themeSelect.value;
+                const total = parsedQuizzes.length;
+
+                els.cardGrid.innerHTML = '';
+                els.emptyState.style.display = total ? 'none' : 'block';
+                els.previewTitle.innerHTML = total
+                    ? `Lote processado — <b>${total} quiz${total > 1 ? 'zes' : ''}</b>`
+                    : 'Nenhum quiz gerado ainda';
+
+                const initials = handle.replace('@', '').slice(0, 2).toUpperCase();
+
+                parsedQuizzes.forEach((data) => {
+                    const frame = document.createElement('div');
+                    frame.className = 'card-frame';
+
+                    const dlBtn = document.createElement('button');
+                    dlBtn.className = 'frame-download';
+                    dlBtn.type = 'button';
+                    dlBtn.textContent = '⬇ PNG';
+                    frame.appendChild(dlBtn);
+
+                    const scaleWrapper = document.createElement('div');
+                    scaleWrapper.className = 'post-scale-wrapper';
+
+                    const card = document.createElement('div');
+                    card.className = `quiz-card ${theme}`;
+                    card.innerHTML = buildQuizMarkup(data, initials, handle);
+
+                    const codeEl = card.querySelector('.hljs-target');
+                    const hljsClass = resolveHljsClass(data.lang);
+                    codeEl.textContent = data.code;
+                    codeEl.className = 'language-' + hljsClass;
+                    if (window.hljs) {
+                        try { hljs.highlightElement(codeEl); } catch (e) { /* linguagem não suportada: mantém texto puro */ }
+                    }
+
+                    scaleWrapper.appendChild(card);
+                    frame.appendChild(scaleWrapper);
+                    els.cardGrid.appendChild(frame);
+
+                    dlBtn.addEventListener('click', () => downloadQuiz(card, data));
+                });
+
+                applyTileSizes();
+            }
+
+            window.addEventListener('resize', applyTileSizes);
+
+            /* =========================================================
+               3. EXPORTAÇÃO EM PNG (offscreen, dimensões travadas)
+
+               A captura NÃO usa o `.quiz-card` visível na tela — que está
+               dentro de um `.post-scale-wrapper` com `transform: scale()`
+               e de um `.card-frame` responsivo (aspect-ratio + resize).
+               Em vez disso, clonamos o nó, isolamos fora da viewport com
+               1080x1920 reais, travamos windowWidth/windowHeight nas
+               opções do html2canvas e usamos uma cor sólida de fundo do
+               tema. Isso elimina linhas/bordas cortadas no PNG,
+               independentemente da tela do dispositivo.
+               ========================================================= */
+
+            async function downloadQuiz(cardEl, data, index) {
+                const activeThemeClass = (cardEl.className.match(/theme-\w+/) || ['theme-dark'])[0];
+                const themeBgColor = THEME_BG[activeThemeClass] || '#0d1117';
+
+                // 1. Clonar o elemento do card
+                const clone = cardEl.cloneNode(true);
+
+                // 2. Travar dimensões e isolar fora do viewport
+                clone.style.position = 'fixed';
+                clone.style.left = '-9999px';
+                clone.style.top = '0';
+                clone.style.width = '1080px';
+                clone.style.height = '1920px';
+                clone.style.transform = 'none';
+                clone.style.margin = '0';
+                clone.style.zIndex = '-9999';
+
+                document.body.appendChild(clone);
+
+                try {
+                    // 3. Renderizar com html2canvas
+                    const canvas = await html2canvas(clone, {
+                        scale: 2,
+                        width: 1080,
+                        height: 1920,
+                        windowWidth: 1080,
+                        windowHeight: 1920,
+                        backgroundColor: themeBgColor,
+                        useCORS: true,
+                        logging: false
+                    });
+
+                    // 5. Baixar PNG
+                    const idx = typeof index === 'number' ? index : parsedQuizzes.indexOf(data);
+                    const link = document.createElement('a');
+                    link.download = `reels-quiz-${String(Math.max(idx, 0) + 1).padStart(2, '0')}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                } catch (err) {
+                    alert('Não foi possível gerar a imagem. Tente novamente.');
+                    console.error(err);
+                } finally {
+                    // 4. Limpar DOM
+                    document.body.removeChild(clone);
+                }
+            }
+
+            /* =========================================================
+               4. EVENTOS / ORQUESTRAÇÃO
+               ========================================================= */
+
+            function setStatus(msg, mode) {
+                els.statusLine.textContent = msg;
+                els.statusLine.classList.toggle('active', mode === 'ok');
+                els.statusLine.classList.toggle('warn', mode === 'warn');
+            }
+
+            els.processBtn.addEventListener('click', () => {
+                const quizzes = parseBatch(els.batchInput.value);
+                if (!quizzes.length) {
+                    setStatus('⚠ Nenhum bloco válido encontrado. Verifique se cada quiz está entre { }.', 'warn');
+                    parsedQuizzes = [];
+                    els.downloadAllBtn.disabled = true;
+                    renderQuizzes();
+                    return;
+                }
+                parsedQuizzes = quizzes;
+                renderQuizzes();
+                setStatus(`✔ ${quizzes.length} quiz(zes) gerado(s) a partir do lote.`, 'ok');
+                els.downloadAllBtn.disabled = false;
+            });
+
+            [els.handleInput].forEach(el => el.addEventListener('input', () => {
+                if (parsedQuizzes.length) renderQuizzes();
+            }));
+            [els.themeSelect].forEach(el => el.addEventListener('change', () => {
+                if (parsedQuizzes.length) renderQuizzes();
+            }));
+
+            els.downloadAllBtn.addEventListener('click', async () => {
+                const cardEls = Array.from(document.querySelectorAll('.card-grid .quiz-card'));
+                if (!cardEls.length) return;
+
+                els.downloadAllBtn.disabled = true;
+                for (let i = 0; i < cardEls.length; i++) {
+                    setStatus(`Exportando quiz ${i + 1} de ${cardEls.length}...`, 'ok');
+                    await downloadQuiz(cardEls[i], parsedQuizzes[i], i);
+                    await new Promise(r => setTimeout(r, 350)); // evita bloqueio de downloads múltiplos do navegador
+                }
+                setStatus(`✔ ${cardEls.length} quiz(zes) exportado(s) em PNG.`, 'ok');
+                els.downloadAllBtn.disabled = false;
+            });
+
+            // Inicialização: processa o exemplo já preenchido no textarea
+            els.processBtn.click();
+        })();
+    </script>
+
+</body>
+
+</html>

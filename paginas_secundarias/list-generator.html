@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrossel Builder — Listas Massivas para Dev/TI</title>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <style>
+        /* Fonte do sistema */
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;600;700;800&display=swap');
+
+        :root {
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+
+            /* App shell tokens (ferramenta em si — não os cards) */
+            --shell-bg: #10131a;
+            --shell-panel: #161a24;
+            --shell-panel-2: #1d2230;
+            --shell-border: #2a3040;
+            --shell-text: #e7e9ee;
+            --shell-muted: #8791a8;
+            --shell-accent: #ffb020;
+            --shell-accent-dim: #ffb02022;
+            --shell-danger: #ff5c5c;
+            --shell-ok: #3ddc84;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--shell-bg);
+            color: var(--shell-text);
+            font-family: var(--font-sans);
+            height: 100%;
+        }
+
+        /* =========================================================
+   APP SHELL
+   ========================================================= */
+
+        .app-shell {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 900px) {
+            .app-shell {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ---- Sidebar ---- */
+        .sidebar {
+            background: var(--shell-panel);
+            border-right: 1px solid var(--shell-border);
+            padding: 24px 22px 40px;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        .brand {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .brand-glyph {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            color: var(--shell-accent);
+            font-size: 15px;
+        }
+
+        .brand-name {
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: -0.01em;
+        }
+
+        .brand-sub {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--shell-muted);
+            margin-bottom: 26px;
+            display: block;
+        }
+
+        .field-group {
+            margin-bottom: 20px;
+        }
+
+        .field-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--shell-muted);
+            margin-bottom: 8px;
+        }
+
+        .field-label .tag {
+            background: var(--shell-accent-dim);
+            color: var(--shell-accent);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            background: var(--shell-panel-2);
+            border: 1px solid var(--shell-border);
+            color: var(--shell-text);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: var(--font-sans);
+            font-size: 13.5px;
+            outline: none;
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--shell-accent);
+            box-shadow: 0 0 0 3px var(--shell-accent-dim);
+        }
+
+        textarea {
+            min-height: 220px;
+            resize: vertical;
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            line-height: 1.6;
+        }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .theme-swatches {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .swatch {
+            height: 46px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .swatch.active {
+            border-color: var(--shell-accent);
+        }
+
+        .swatch span {
+            position: absolute;
+            bottom: 3px;
+            left: 5px;
+            font-family: var(--font-mono);
+            font-size: 8.5px;
+            color: #fff;
+            opacity: .85;
+            text-transform: uppercase;
+        }
+
+        .swatch.sw-dark {
+            background: linear-gradient(165deg, #0d1117, #161b22);
+        }
+
+        .swatch.sw-neon {
+            background: linear-gradient(150deg, #150a2e, #241245 45%, #0c1b33);
+        }
+
+        .swatch.sw-light {
+            background: linear-gradient(165deg, #ffffff, #eef1f6);
+        }
+
+        .swatch.sw-light span {
+            color: #0f172a;
+        }
+
+        .swatch.sw-retro {
+            background: #050805;
+        }
+
+        .hint {
+            font-size: 11.5px;
+            color: var(--shell-muted);
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            width: 100%;
+            border: none;
+            border-radius: 9px;
+            padding: 12px 14px;
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: transform .08s ease, filter .15s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--shell-panel-2);
+            border: 1px solid var(--shell-border);
+            color: var(--shell-text);
+            margin-bottom: 10px;
+        }
+
+        .btn-primary:hover {
+            border-color: var(--shell-accent);
+            color: var(--shell-accent);
+        }
+
+        .btn-export {
+            background: var(--shell-accent);
+            color: #1a1200;
+        }
+
+        .btn-export:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-export:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            filter: none;
+        }
+
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--shell-muted);
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed var(--shell-border);
+        }
+
+        .stat-line b {
+            color: var(--shell-text);
+        }
+
+        /* ---- Preview canvas area ---- */
+        .canvas-area {
+            background:
+                linear-gradient(90deg, #1a1f2b 1px, transparent 1px),
+                linear-gradient(#1a1f2b 1px, transparent 1px),
+                var(--shell-bg);
+            background-size: 22px 22px, 22px 22px, auto;
+            overflow: auto;
+            padding: 30px;
+        }
+
+        .canvas-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--shell-muted);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .canvas-toolbar .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--shell-ok);
+            display: inline-block;
+            margin-right: 6px;
+            box-shadow: 0 0 6px var(--shell-ok);
+        }
+
+        .frames-track {
+            display: flex;
+            gap: 26px;
+            align-items: flex-start;
+            padding-bottom: 20px;
+        }
+
+        .frame {
+            flex: 0 0 auto;
+        }
+
+        .frame-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--shell-muted);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .frame-label b {
+            color: var(--shell-text);
+        }
+
+        .frame-window {
+            width: 300px;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 4px;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, .55), 0 0 0 1px var(--shell-border);
+            position: relative;
+            background: #000;
+        }
+
+        .empty-state {
+            font-family: var(--font-mono);
+            color: var(--shell-muted);
+            font-size: 13px;
+            padding: 60px 10px;
+            max-width: 420px;
+            line-height: 1.7;
+        }
+
+        .empty-state b {
+            color: var(--shell-text);
+        }
+
+        /* =========================================================
+   CARD (1080x1080) — estrutura genérica
+   ========================================================= */
+
+        .card {
+            width: 1080px;
+            height: 1080px;
+            transform-origin: top left;
+            transform: scale(0.2778);
+            /* 300/1080 */
+            position: relative;
+            display: block;
+        }
+
+        .card-inner {
+            width: 1080px;
+            height: 1080px;
+            padding: 72px 76px 64px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 44px;
+        }
+
+        .post-avatar {
+            width: 78px;
+            height: 78px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 26px;
+            flex: none;
+        }
+
+        .header-text {
+            flex: 1;
+        }
+
+        .post-handle {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 27px;
+        }
+
+        .post-lang-badge {
+            font-family: var(--font-mono);
+            font-size: 20px;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 999px;
+            flex: none;
+        }
+
+        .post-title {
+            font-family: var(--font-sans);
+            font-weight: 800;
+            font-size: 52px;
+            line-height: 1.12;
+            letter-spacing: -0.015em;
+            margin: 0 0 40px;
+        }
+
+        .list-body {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex: 1;
+            overflow: hidden;
+            justify-content: center;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            border-radius: 16px;
+            padding: 22px 28px;
+        }
+
+        .list-item-num {
+            font-family: var(--font-mono);
+            font-size: 26px;
+            flex: none;
+            min-width: 58px;
+        }
+
+        .list-item-text {
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 27px;
+            line-height: 1.3;
+        }
+
+        .post-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 40px;
+            font-family: var(--font-mono);
+            font-size: 20px;
+        }
+
+        .post-footer .swipe-hint {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* =========================================================
+   TEMAS DO CARD (PADRÃO OBRIGATÓRIO)
+   ========================================================= */
+
+        /* ---------- TEMA 1 — Dark Code ---------- */
+        .theme-dark {
+            background: linear-gradient(165deg, #0d1117 0%, #161b22 60%, #0d1117 100%);
+            color: #e6edf3;
+        }
+
+        .theme-dark .post-avatar {
+            background: #1f6feb22;
+            color: #58a6ff;
+            border: 1px solid #1f6feb55;
+        }
+
+        .theme-dark .post-handle {
+            color: #58a6ff;
+        }
+
+        .theme-dark .post-lang-badge {
+            background: #238636;
+            color: #eafff0;
+        }
+
+        .theme-dark .post-title {
+            color: #f0f6fc;
+        }
+
+        .theme-dark .list-item {
+            background: #161b22;
+            border: 1px solid #30363d;
+            color: #e6edf3;
+        }
+
+        .theme-dark .list-item-num {
+            color: #58a6ff;
+            font-weight: 700;
+        }
+
+        .theme-dark .post-footer {
+            color: #8b949e;
+        }
+
+        /* ---------- TEMA 2 — Neon Synth ---------- */
+        .theme-neon {
+            background: radial-gradient(circle at 15% 15%, rgba(255, 110, 199, .35), transparent 45%), radial-gradient(circle at 90% 85%, rgba(0, 229, 255, .30), transparent 50%), linear-gradient(150deg, #150a2e 0%, #241245 45%, #0c1b33 100%);
+            color: #f3ecff;
+        }
+
+        .theme-neon .post-avatar {
+            background: rgba(255, 110, 199, .15);
+            color: #ff6ec7;
+            border: 1px solid rgba(255, 110, 199, .55);
+            box-shadow: 0 0 18px rgba(255, 110, 199, .35);
+        }
+
+        .theme-neon .post-handle {
+            color: #ff9ee0;
+            text-shadow: 0 0 14px rgba(255, 110, 199, .55);
+        }
+
+        .theme-neon .post-lang-badge {
+            background: rgba(0, 229, 255, .14);
+            color: #7cf3ff;
+            border: 1px solid rgba(0, 229, 255, .5);
+            box-shadow: 0 0 16px rgba(0, 229, 255, .3);
+        }
+
+        .theme-neon .post-title {
+            background: linear-gradient(90deg, #7cf3ff, #ff9ee0 60%, #ffe27a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .theme-neon .list-item {
+            background: rgba(9, 6, 20, .72);
+            border: 1px solid rgba(124, 243, 255, .35);
+            color: #f3ecff;
+        }
+
+        .theme-neon .list-item-num {
+            color: #7cf3ff;
+            text-shadow: 0 0 8px rgba(124, 243, 255, .5);
+        }
+
+        .theme-neon .post-footer {
+            color: #c8b8f0;
+        }
+
+        /* ---------- TEMA 3 — Clean Light ---------- */
+        .theme-light {
+            background: linear-gradient(165deg, #ffffff 0%, #f4f6f9 100%);
+            color: #0f172a;
+        }
+
+        .theme-light .post-avatar {
+            background: #eef2ff;
+            color: #4338ca;
+            border: 1px solid #c7d2fe;
+        }
+
+        .theme-light .post-handle {
+            color: #1d4ed8;
+        }
+
+        .theme-light .post-lang-badge {
+            background: #0f172a;
+            color: #fff;
+        }
+
+        .theme-light .post-title {
+            color: #0f172a;
+        }
+
+        .theme-light .list-item {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #0f172a;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .theme-light .list-item-num {
+            color: #2563eb;
+            font-weight: 700;
+        }
+
+        .theme-light .post-footer {
+            color: #64748b;
+        }
+
+        /* ---------- TEMA 4 — Retro Terminal ---------- */
+        .theme-retro {
+            background: #050805;
+            color: #3dff85;
+            font-family: var(--font-mono);
+        }
+
+        .theme-retro::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, rgba(61, 255, 133, .05) 0px, rgba(61, 255, 133, .05) 1px, transparent 1px, transparent 3px);
+            pointer-events: none;
+            mix-blend-mode: overlay;
+            z-index: 1;
+        }
+
+        .theme-retro .post-avatar {
+            background: transparent;
+            color: #3dff85;
+            border: 2px solid #3dff85;
+        }
+
+        .theme-retro .post-handle {
+            color: #3dff85;
+            text-shadow: 0 0 8px rgba(61, 255, 133, .6);
+        }
+
+        .theme-retro .post-lang-badge {
+            background: transparent;
+            color: #3dff85;
+            border: 2px solid #3dff85;
+            border-radius: 4px;
+        }
+
+        .theme-retro .post-title {
+            color: #baffcf;
+            text-transform: uppercase;
+            letter-spacing: .02em;
+            text-shadow: 0 0 12px rgba(61, 255, 133, .5);
+            font-family: var(--font-mono);
+        }
+
+        .theme-retro .list-item {
+            background: #020a03;
+            border: 1px solid #1f7a44;
+            color: #8dffb3;
+        }
+
+        .theme-retro .list-item-num {
+            color: #3dff85;
+        }
+
+        .theme-retro .post-footer {
+            color: #2fae66;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-shell">
+
+        <!-- ===================== SIDEBAR / PAINEL DE CONTROLE ===================== -->
+        <aside class="sidebar">
+            <div class="brand">
+                <span class="brand-glyph">&lt;/&gt;</span>
+                <span class="brand-name">Carrossel Builder</span>
+            </div>
+            <span class="brand-sub">gerador de listas massivas — 100% client-side</span>
+
+            <div class="field-group">
+                <label class="field-label">Handle do Instagram</label>
+                <input type="text" id="fHandle" value="@algoritmo.da.vez" placeholder="@seu.usuario">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Título da lista / post</label>
+                <input type="text" id="fTitle" value="50 PROJETOS PARA DOMINAR JAVASCRIPT"
+                    placeholder="ex: 50 PROJETOS PARA...">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Tema visual</label>
+                <div class="theme-swatches" id="themeSwatches">
+                    <div class="swatch sw-dark active" data-theme="theme-dark"><span>Dark</span></div>
+                    <div class="swatch sw-neon" data-theme="theme-neon"><span>Neon</span></div>
+                    <div class="swatch sw-light" data-theme="theme-light"><span>Light</span></div>
+                    <div class="swatch sw-retro" data-theme="theme-retro"><span>Retro</span></div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Configuração do bloco de texto <span class="tag">parsing</span></label>
+                <div class="row-2">
+                    <div>
+                        <label class="field-label" style="margin-bottom:4px;">Separador</label>
+                        <input type="text" id="fSeparator" value="---" placeholder="--- ou \n">
+                    </div>
+                    <div>
+                        <label class="field-label" style="margin-bottom:4px;">Itens/card</label>
+                        <select id="fPerCard">
+                            <option value="5">5</option>
+                            <option value="8" selected>8</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="hint">Use <code>\n</code> para quebra de linha, ou qualquer símbolo (<code>---</code>,
+                    <code>01)</code>, <code>*</code>) como delimitador entre itens.</p>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Lista bruta <span class="tag" id="itemCountTag">0 itens</span></label>
+                <textarea id="fRawList" placeholder="Cole aqui todos os itens de uma vez, separados pelo delimitador escolhido acima.
+
+Ex:
+Criar um clone do Trello
+---
+Fazer um gerador de senhas
+---
+Construir uma calculadora de IMC">Criar um clone do Trello com drag-and-drop
+---
+Fazer um gerador de senhas seguras
+---
+Construir uma calculadora de IMC
+---
+Montar um encurtador de URLs
+---
+Criar um To-Do List com localStorage
+---
+Fazer um clone da tela de login do GitHub
+---
+Construir um conversor de moedas com API
+---
+Criar um quiz de JavaScript
+---
+Montar um dashboard de clima
+---
+Fazer um chat em tempo real com WebSockets
+---
+Criar um jogo da velha
+---
+Construir um leitor de RSS
+---
+Fazer um app de anotações markdown
+---
+Criar uma calculadora de gorjetas
+---
+Montar um gerador de QR Code
+---
+Fazer um relógio pomodoro
+---
+Criar um carrossel de imagens do zero
+---
+Construir um validador de CPF/CNPJ
+---
+Fazer um buscador de CEP
+---
+Montar uma lista de tarefas com drag-and-drop
+---
+Criar um gerador de paleta de cores</textarea>
+            </div>
+
+            <button class="btn btn-primary" id="btnProcess">🔄 Processar e Dividir Lista</button>
+            <button class="btn btn-export" id="btnExport" disabled>📦 Baixar Todos os Cards (PNG)</button>
+
+            <div class="stat-line">
+                <span>Cards gerados</span><b id="statCards">0</b>
+            </div>
+            <div class="stat-line" style="border-top:none; padding-top:4px; margin-top:0;">
+                <span>Itens totais</span><b id="statItems">0</b>
+            </div>
+        </aside>
+
+        <!-- ===================== ÁREA DE PREVIEW ===================== -->
+        <main class="canvas-area">
+            <div class="canvas-toolbar">
+                <div><span class="status-dot"></span>preview em tempo real · 1080×1080px por frame</div>
+                <div id="toolbarInfo">nenhum card gerado ainda</div>
+            </div>
+
+            <div class="frames-track" id="framesTrack">
+                <div class="empty-state">
+                    <b>Como funciona:</b><br>
+                    1. Cole toda a sua lista de uma vez no campo ao lado.<br>
+                    2. Ajuste o separador e quantos itens cabem por card.<br>
+                    3. Clique em <b>Processar e Dividir Lista</b>.<br>
+                    4. Baixe todos os cards prontos em PNG (1080×1080), numerados na ordem certa para postar no
+                    carrossel.
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <script>
+        (function () {
+            const state = {
+                theme: 'theme-dark',
+                cards: [] // array of { items: [{num, text}], index, total }
+            };
+
+            const el = {
+                handle: document.getElementById('fHandle'),
+                title: document.getElementById('fTitle'),
+                separator: document.getElementById('fSeparator'),
+                perCard: document.getElementById('fPerCard'),
+                rawList: document.getElementById('fRawList'),
+                itemCountTag: document.getElementById('itemCountTag'),
+                btnProcess: document.getElementById('btnProcess'),
+                btnExport: document.getElementById('btnExport'),
+                framesTrack: document.getElementById('framesTrack'),
+                toolbarInfo: document.getElementById('toolbarInfo'),
+                statCards: document.getElementById('statCards'),
+                statItems: document.getElementById('statItems'),
+                themeSwatches: document.getElementById('themeSwatches'),
+            };
+
+            el.themeSwatches.addEventListener('click', (e) => {
+                const sw = e.target.closest('.swatch');
+                if (!sw) return;
+                [...el.themeSwatches.children].forEach(c => c.classList.remove('active'));
+                sw.classList.add('active');
+                state.theme = sw.dataset.theme;
+                if (state.cards.length) render();
+            });
+
+            el.rawList.addEventListener('input', () => {
+                el.itemCountTag.textContent = parseItems().length + ' itens';
+            });
+
+            function parseItems() {
+                const raw = el.rawList.value;
+                let sep = el.separator.value;
+                let parts;
+                if (!sep || sep.trim() === '' || sep === '\\n') {
+                    parts = raw.split(/\r?\n/);
+                } else {
+                    parts = raw.split(sep);
+                }
+                return parts.map(p => p.trim()).filter(Boolean);
+            }
+
+            function chunk(arr, size) {
+                const out = [];
+                for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+                return out;
+            }
+
+            function process() {
+                const items = parseItems();
+                el.itemCountTag.textContent = items.length + ' itens';
+                if (!items.length) {
+                    alert('Cole ao menos um item na lista antes de processar.');
+                    return;
+                }
+                const perCard = parseInt(el.perCard.value, 10);
+                const groups = chunk(items, perCard);
+                const padLen = String(items.length).length < 2 ? 2 : String(items.length).length;
+
+                let counter = 0;
+                state.cards = groups.map((g, gi) => {
+                    const numberedItems = g.map(text => {
+                        counter++;
+                        return { num: String(counter).padStart(padLen, '0'), text };
+                    });
+                    return { items: numberedItems, index: gi + 1, total: groups.length };
+                });
+
+                render();
+            }
+
+            function render() {
+                el.framesTrack.innerHTML = '';
+                const handle = el.handle.value.trim() || '@seu.usuario';
+                const title = el.title.value.trim() || 'SEM TÍTULO';
+
+                state.cards.forEach((cardData, i) => {
+                    const isLast = cardData.index === cardData.total;
+
+                    const frame = document.createElement('div');
+                    frame.className = 'frame';
+
+                    const label = document.createElement('div');
+                    label.className = 'frame-label';
+                    label.innerHTML = `<span>frame_${cardData.index}.png</span><b>${cardData.index}/${cardData.total}</b>`;
+
+                    const win = document.createElement('div');
+                    win.className = 'frame-window';
+
+                    const card = document.createElement('div');
+                    card.className = 'card ' + state.theme;
+                    card.dataset.cardIndex = i;
+
+                    const itemsHtml = cardData.items.map(it =>
+                        `<div class="list-item">
+          <span class="list-item-num">${it.num}.</span>
+          <span class="list-item-text">${escapeHtml(it.text)}</span>
+        </div>`
+                    ).join('');
+
+                    card.innerHTML = `
+        <div class="card-inner">
+          <div class="card-header">
+            <div class="post-avatar">&lt;/&gt;</div>
+            <div class="header-text">
+              <div class="post-handle">${escapeHtml(handle)}</div>
+            </div>
+            <div class="post-lang-badge">${cardData.index}/${cardData.total}</div>
+          </div>
+          <h1 class="post-title">${escapeHtml(title)}</h1>
+          <div class="list-body">${itemsHtml}</div>
+          <div class="post-footer">
+            <span>${escapeHtml(handle)}</span>
+            <span class="swipe-hint">${isLast ? 'Salve pra não perder 🔖' : 'Arraste para ver mais ➔'}</span>
+          </div>
+        </div>
+      `;
+
+                    win.appendChild(card);
+                    frame.appendChild(label);
+                    frame.appendChild(win);
+                    el.framesTrack.appendChild(frame);
+                });
+
+                el.statCards.textContent = state.cards.length;
+                el.statItems.textContent = state.cards.reduce((a, c) => a + c.items.length, 0);
+                el.toolbarInfo.textContent = state.cards.length + ' frames prontos · role para o lado para conferir a ordem';
+                el.btnExport.disabled = state.cards.length === 0;
+            }
+
+            function escapeHtml(str) {
+                const d = document.createElement('div');
+                d.textContent = str;
+                return d.innerHTML;
+            }
+
+            async function exportAll() {
+                if (!state.cards.length) return;
+                el.btnExport.disabled = true;
+                const originalLabel = el.btnExport.textContent;
+                const zip = new JSZip();
+                const cardEls = [...document.querySelectorAll('.card')];
+
+                for (let i = 0; i < cardEls.length; i++) {
+                    el.btnExport.textContent = `⏳ Renderizando ${i + 1}/${cardEls.length}...`;
+                    const cardEl = cardEls[i];
+                    const prevTransform = cardEl.style.transform;
+                    cardEl.style.transform = 'none';
+                    // força reflow antes de capturar em resolução real
+                    // eslint-disable-next-line no-unused-expressions
+                    cardEl.offsetHeight;
+                    const canvas = await html2canvas(cardEl, {
+                        width: 1080,
+                        height: 1080,
+                        scale: 1,
+                        useCORS: true,
+                        backgroundColor: null,
+                    });
+                    cardEl.style.transform = prevTransform;
+
+                    const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+                    const num = String(i + 1).padStart(2, '0');
+                    zip.file(`carrossel_card_${num}.png`, blob);
+                }
+
+                el.btnExport.textContent = '📦 Compactando arquivo...';
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                const url = URL.createObjectURL(zipBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'carrossel-cards.zip';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+
+                el.btnExport.textContent = originalLabel;
+                el.btnExport.disabled = false;
+            }
+
+            el.btnProcess.addEventListener('click', process);
+            el.btnExport.addEventListener('click', exportAll);
+            el.title.addEventListener('input', () => { if (state.cards.length) render(); });
+            el.handle.addEventListener('input', () => { if (state.cards.length) render(); });
+
+            // gera um preview inicial com os dados de exemplo já preenchidos
+            process();
+        })();
+    </script>
+
+</body>
+
+</html>
